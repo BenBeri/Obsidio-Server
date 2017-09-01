@@ -99,4 +99,9 @@ public class Packet {
     public ByteBuf getBuffer() {
         return dataBuffer;
     }
+
+    @Override
+    public String toString() {
+        return "[Opcode: " + opcode + ", Length: " + length + " length-type: " + packetLength + " buffer-size: " + dataBuffer.capacity();
+    }
 }

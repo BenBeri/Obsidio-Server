@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.codec;
 
 import com.benberi.cadesim.server.ServerContext;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 
@@ -20,57 +21,57 @@ public class ServerChannelHandler implements ChannelInboundHandler {
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        context.getPlayerManager().registerPlayer(ctx.channel());
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        context.getPlayerManager().deRegisterPlayer(ctx.channel());
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void channelUnregistered(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
 
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object o) throws Exception {
 
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void channelWritabilityChanged(ChannelHandlerContext channelHandlerContext) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext channelHandlerContext) throws Exception {
-
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext channelHandlerContext) throws Exception {
-
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable throwable) throws Exception {
 
     }
 }
