@@ -34,7 +34,7 @@ public class PlayerManager {
      * Ticks all players
      */
     public void tick() {
-        sendTime();
+      //  sendTime();
     }
 
     public void registerPlayer(Channel c) {
@@ -42,8 +42,9 @@ public class PlayerManager {
         Player player = new Player(context, c);
         this.players.add(player);
 
+
         logger.info("A new player joined the game: " + c.remoteAddress());
-        //sendAllPacket(new AddPlayerShipPacket(player));
+        player.sendPacket(new AddPlayerShipPacket(player));
     }
 
     /**

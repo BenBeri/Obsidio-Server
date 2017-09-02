@@ -22,7 +22,12 @@ public class ServerChannelHandler implements ChannelInboundHandler {
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        context.getPlayerManager().registerPlayer(ctx.channel());
+        try {
+            context.getPlayerManager().registerPlayer(ctx.channel());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

@@ -22,12 +22,27 @@ public class Player {
     /**
      * The name of the player
      */
-    private String name;
+    private String name = "A Vessel";
 
     /**
      * Player's vessel
      */
     private Vessel vessel;
+
+    /**
+     * X-axis position of the player
+     */
+    private int x;
+
+    /**
+     * Y-axis position of the player
+     */
+    private int y;
+
+    /**
+     * The face of the player (rotation id)
+     */
+    private int face;
 
     /**
      * The server context
@@ -64,6 +79,38 @@ public class Player {
      */
     public ServerContext getContext() {
         return context;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Vessel getVessel() {
+        return vessel;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getFace() {
+        return face;
+    }
+
+    public void setFace(int face) {
+        this.face = face;
     }
 
     /**

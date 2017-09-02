@@ -74,7 +74,7 @@ public class CadeServer extends ServerBootstrap implements Runnable {
             }
 
             f.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             worker.shutdownGracefully();

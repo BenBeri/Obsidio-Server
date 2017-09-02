@@ -74,14 +74,41 @@ public class Packet {
         return this.dataBuffer.readByte();
     }
 
-    public String readString() {
-        byte[] bytes = new byte[dataBuffer.readUnsignedByte()];
+    public void writeByteString(String s) {
+        byte[] strData = s.getBytes();
+        System.out.println(strData.length);
+        dataBuffer.writeByte(strData.length);
+        dataBuffer.writeBytes(strData);
+}
+
+    public void writeMediumString(String s) {
+        byte[] strData = s.getBytes();
+        dataBuffer.writeMedium(strData.length);
+        dataBuffer.writeBytes(strData);
+    }
+
+    public void writeIntString(String s) {
+        byte[] strData = s.getBytes();
+        dataBuffer.writeInt(strData.length);
+        dataBuffer.writeBytes(strData);
+    }
+
+    public String readByteString() {
+        byte[] bytes = new byte[dataBuffer.readByte()];
         dataBuffer.readBytes(bytes);
         return new String(bytes);
     }
 
-    public void writeString(String s) {
-        this.dataBuffer.writeBytes(s.getBytes());
+    public String readMediumString() {
+        byte[] bytes = new byte[dataBuffer.readMedium()];
+        dataBuffer.readBytes(bytes);
+        return new String(bytes);
+    }
+
+    public String readIntString() {
+        byte[] bytes = new byte[dataBuffer.readInt()];
+        dataBuffer.readBytes(bytes);
+        return new String(bytes);
     }
 
     public void writeInt(int integer) {

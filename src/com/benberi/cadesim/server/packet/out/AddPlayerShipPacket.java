@@ -12,10 +12,11 @@ public class AddPlayerShipPacket extends Packet {
     public AddPlayerShipPacket(Player p) {
         super(2);
         setPacketLengthType(PacketLength.BYTE);
-        setLength(3);
-        writeByte(10);
-        writeByte(1); // x
-        writeByte(1); // y
-        writeByte(0); // face
+        setLength(p.getName().getBytes().length + 2 + 1 + 1);
+
+        writeByteString(p.getName());
+        writeByte(p.getX()); // x
+        writeByte(p.getY()); // y
+        writeByte(p.getFace()); // face
     }
 }
