@@ -4,6 +4,7 @@ import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.packet.out.AddPlayerShipPacket;
+import com.benberi.cadesim.server.packet.out.SendTimePacket;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
@@ -25,17 +26,24 @@ public class PlayerManager {
      */
     private ServerContext context;
 
-    public PlayerManager(ServerContext ctx) {
-        this.context = ctx;
+    public PlayerManager(ServerContext context) {
+        this.context = context;
+    }
+
+    /**
+     * Ticks all players
+     */
+    public void tick() {
+        sendTime();
     }
 
     public void registerPlayer(Channel c) {
 
-        Player player = new Player(c);
+        Player player = new Player(context, c);
         this.players.add(player);
 
         logger.info("A new player joined the game: " + c.remoteAddress());
-        sendAllPacket(new AddPlayerShipPacket(player));
+        //sendAllPacket(new AddPlayerShipPacket(player));
     }
 
     /**
@@ -46,6 +54,10 @@ public class PlayerManager {
         players.forEach(pl -> pl.sendPacket(p));
     }
 
+    /**
+     * De-registers a player from the server
+     * @param channel   The channel that got de-registered
+     */
     public void deRegisterPlayer(Channel channel) {
         boolean removed = players.removeIf(player -> player.equals(channel));
 
@@ -60,5 +72,13 @@ public class PlayerManager {
 
        // todo send pakcets to all about this removal
 
+    }
+
+    /**
+     * Sends and updates the time of the game, turn for all players
+     */
+    private void sendTime() {
+        SendTimePacket packet = new SendTimePacket(context.getTimeMachine());
+        sendAllPacket(packet);
     }
 }

@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * RawrServer is a small server ran by one thread to run small games
  * such as the blockade simulator for low-players games
  */
-public class CadeServer extends ServerBootstrap {
+public class CadeServer extends ServerBootstrap implements Runnable {
 
 
     /**
@@ -32,14 +32,19 @@ public class CadeServer extends ServerBootstrap {
      */
     private EventLoopGroup worker = new NioEventLoopGroup(1);
 
+    private boolean loaded = false;
+
     /**
      * The server context
      */
     private ServerContext context;
 
-    public CadeServer() {
+    private GameServerBootstrap bootstrap;
+
+    public CadeServer(ServerContext context, GameServerBootstrap bootstrap) {
         super();
-        this.context = new ServerContext(this);
+        this.context = context;
+        this.bootstrap = bootstrap;
         group(worker);
         channel(NioServerSocketChannel.class);
         option(ChannelOption.SO_BACKLOG, 100);
@@ -56,11 +61,18 @@ public class CadeServer extends ServerBootstrap {
         });
     }
 
-    public void start(int port) {
+    public void run() {
         try {
+            int port = context.getConfiguration().getPort();
             ChannelFuture f = bind(port).sync();
-            logger.info("CadeServer Blockade Simulator has started");
-            logger.info("Protocol port: " + port);
+            if (f.isSuccess()) {
+                bootstrap.startServices();
+            }
+            else {
+                logger.warning("Could not bind the server on port " + port + ". Cause: " + f.cause().getMessage());
+                System.exit(0);
+            }
+
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -69,13 +81,7 @@ public class CadeServer extends ServerBootstrap {
         }
     }
 
-    public static void main(String... args) {
-        int port = Constants.PROTOCOL_DEFAULT_PORT;
-        if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
-        }
-
-        CadeServer server = new CadeServer();
-        server.start(port);
+    public boolean isLoaded() {
+        return this.loaded;
     }
 }

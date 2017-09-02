@@ -102,6 +102,6 @@ public class Packet {
 
     @Override
     public String toString() {
-        return "[Opcode: " + opcode + ", Length: " + length + " length-type: " + packetLength + " buffer-size: " + dataBuffer.capacity();
+        return "[Opcode: " + opcode + ", Length: " + length + " length-type: " + packetLength + " buffer-size: " + dataBuffer.readableBytes() + "]";
     }
 }

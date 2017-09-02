@@ -126,6 +126,9 @@ public class PacketDecoder extends StatefulByteDecoder<PacketDecodeState> {
         if (buffer.readableBytes() >= length) {
             ByteBuf data = buffer.readBytes(length);
             out.add(new Packet(opcode, data));
+
+            buffer.clear(); // clear the buffer
+            setState(PacketDecodeState.OPCODE);
         }
     }
 }

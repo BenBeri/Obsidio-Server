@@ -1,8 +1,10 @@
 package com.benberi.cadesim.server.model;
 
 import com.benberi.cadesim.server.Constants;
+import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.vessel.Vessel;
+import com.sun.security.ntlm.Server;
 import io.netty.channel.Channel;
 
 import java.util.logging.Logger;
@@ -27,8 +29,14 @@ public class Player {
      */
     private Vessel vessel;
 
-    public Player(Channel c) {
+    /**
+     * The server context
+     */
+    private ServerContext context;
+
+    public Player(ServerContext ctx, Channel c) {
         this.channel = c;
+        this.context = ctx;
     }
 
     /**
@@ -48,6 +56,14 @@ public class Player {
      */
     public Channel getChannel() {
         return channel;
+    }
+
+    /**
+     * Gets the server context
+     * @return {@link #context}
+     */
+    public ServerContext getContext() {
+        return context;
     }
 
     /**
