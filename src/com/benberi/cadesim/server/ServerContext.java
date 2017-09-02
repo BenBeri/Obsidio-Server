@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server;
 
 import com.benberi.cadesim.server.model.PlayerManager;
+import com.benberi.cadesim.server.model.cade.BlockadeMap;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
 
 public class ServerContext {
@@ -16,6 +17,11 @@ public class ServerContext {
     private BlockadeTimeMachine timeMachine;
 
     /**
+     * The blockade map
+     */
+    private BlockadeMap map;
+
+    /**
      * The configuration of the server
      */
     private ServerConfiguration configuration;
@@ -24,6 +30,7 @@ public class ServerContext {
         this.configuration = config;
         this.players = new PlayerManager(this);
         this.timeMachine = new BlockadeTimeMachine(this);
+        this.map = new BlockadeMap(this);
     }
 
     /**
@@ -48,5 +55,13 @@ public class ServerContext {
      */
     public BlockadeTimeMachine getTimeMachine() {
         return timeMachine;
+    }
+
+    /**
+     * Gets the map handler
+     * @return  {@link #map}
+     */
+    public BlockadeMap getMap() {
+        return map;
     }
 }

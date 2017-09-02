@@ -4,6 +4,7 @@ import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.packet.out.AddPlayerShipPacket;
+import com.benberi.cadesim.server.packet.out.SendMapPacket;
 import com.benberi.cadesim.server.packet.out.SendTimePacket;
 import io.netty.channel.Channel;
 
@@ -34,7 +35,7 @@ public class PlayerManager {
      * Ticks all players
      */
     public void tick() {
-      //  sendTime();
+        sendTime();
     }
 
     public void registerPlayer(Channel c) {
@@ -44,6 +45,7 @@ public class PlayerManager {
 
 
         logger.info("A new player joined the game: " + c.remoteAddress());
+        player.sendPacket(new SendMapPacket(context.getMap()));
         player.sendPacket(new AddPlayerShipPacket(player));
     }
 
