@@ -28,7 +28,6 @@ public class SendMapPacket extends Packet {
             }
         }
 
-        System.out.println("setting size: " + size);
         setLength(size);
 
         for (int x = 0; x < map.length; x++) {

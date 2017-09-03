@@ -4,6 +4,7 @@ import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.vessel.Vessel;
+import com.benberi.cadesim.server.packet.out.SendMapPacket;
 import com.sun.security.ntlm.Server;
 import io.netty.channel.Channel;
 
@@ -48,6 +49,11 @@ public class Player {
      * The server context
      */
     private ServerContext context;
+
+    /**
+     * If the player is registered
+     */
+    private boolean isRegistered;
 
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
@@ -111,6 +117,32 @@ public class Player {
 
     public void setFace(int face) {
         this.face = face;
+    }
+
+
+    public void register(String name, int shipType, int jobbersType) {
+        this.name = name;
+        this.vessel = Vessel.createVesselByType(shipType);
+        this.vessel.setJobbersQuality(jobbersType);
+
+        context.getPlayerManager().instancePlayer(this);
+        this.isRegistered = true;
+    }
+
+    /**
+     * If the player is registered
+     * @return  {@link #isRegistered}
+     */
+    public boolean isRegistered() {
+        return this.isRegistered;
+    }
+
+    /**
+     * Sends the game board to the client
+     */
+    public void sendBoard() {
+        Packet packet = new SendMapPacket(context.getMap());
+        sendPacket(packet);
     }
 
     /**

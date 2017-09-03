@@ -39,22 +39,22 @@ public class PlayerManager {
     }
 
     public void registerPlayer(Channel c) {
-
         Player player = new Player(context, c);
         this.players.add(player);
-
-
-        logger.info("A new player joined the game: " + c.remoteAddress());
-        player.sendPacket(new SendMapPacket(context.getMap()));
-        player.sendPacket(new AddPlayerShipPacket(player));
+        logger.info("A new player attempts to join the game: " + c.remoteAddress());
     }
 
     /**
      * Sends a packet to all players
      * @param p The packet to send
      */
-    public void sendAllPacket(Packet p) {
-        players.forEach(pl -> pl.sendPacket(p));
+    public void sendAllPacket(Packet p, boolean registeredOnly) {
+        if (registeredOnly) {
+            players.stream().filter(Player::isRegistered).forEach(pl -> pl.sendPacket(p));
+        }
+        else {
+            players.forEach(pl -> pl.sendPacket(p));
+        }
     }
 
     /**
@@ -82,6 +82,29 @@ public class PlayerManager {
      */
     private void sendTime() {
         SendTimePacket packet = new SendTimePacket(context.getTimeMachine());
-        sendAllPacket(packet);
+        sendAllPacket(packet, true);
+    }
+
+    /**
+     * Gets a player instance by its channel
+     * @param c The channel
+     * @return  The player instance if found, null if not found
+     */
+    public Player getPlayerByChannel(Channel c) {
+        for(Player p : players) {
+            if (p.equals(c)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Instances a player, makes it official to all, and initializes it
+     * @param player    The player to instance
+     */
+    public void instancePlayer(Player player) {
+        player.sendBoard(); // Send the game board map
+
     }
 }

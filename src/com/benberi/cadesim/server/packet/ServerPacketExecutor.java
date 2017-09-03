@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.packet;
 
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
+import com.benberi.cadesim.server.model.Player;
 
 public abstract class ServerPacketExecutor {
 
@@ -18,5 +19,5 @@ public abstract class ServerPacketExecutor {
         return this.context;
     }
 
-    public abstract void execute(Packet p);
+    public abstract void execute(Player pl, Packet p);
 }

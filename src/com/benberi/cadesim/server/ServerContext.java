@@ -3,6 +3,7 @@ package com.benberi.cadesim.server;
 import com.benberi.cadesim.server.model.PlayerManager;
 import com.benberi.cadesim.server.model.cade.BlockadeMap;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
+import com.benberi.cadesim.server.packet.ServerPacketManager;
 
 public class ServerContext {
 
@@ -26,11 +27,14 @@ public class ServerContext {
      */
     private ServerConfiguration configuration;
 
+    private ServerPacketManager packets;
+
     public ServerContext(ServerConfiguration config) {
         this.configuration = config;
         this.players = new PlayerManager(this);
         this.timeMachine = new BlockadeTimeMachine(this);
         this.map = new BlockadeMap(this);
+        this.packets = new ServerPacketManager(this);
     }
 
     /**
@@ -63,5 +67,13 @@ public class ServerContext {
      */
     public BlockadeMap getMap() {
         return map;
+    }
+
+    /**
+     * Gets the packet manager
+     * @return {@link #packets}
+     */
+    public ServerPacketManager getPackets() {
+        return packets;
     }
 }

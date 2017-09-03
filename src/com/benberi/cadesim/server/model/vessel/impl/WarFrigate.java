@@ -6,6 +6,6 @@ public class WarFrigate extends Vessel {
 
     @Override
     public int getID() {
-        return 10;
+        return 0;
     }
 }

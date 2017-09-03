@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.codec;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.util.Packet;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
@@ -47,7 +48,12 @@ public class ServerChannelHandler implements ChannelInboundHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
-
+        System.out.println("heyy");
+        if (o instanceof Packet) {
+            Packet packet = (Packet) o;
+            Channel c = ctx.channel();
+            context.getPackets().process(c, packet);
+        }
     }
 
     @Override

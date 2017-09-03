@@ -32,8 +32,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
 
 
         buffer.writeBytes(packet.getBuffer());
-
-        System.out.println("sent");
         ctx.channel().writeAndFlush(buffer.retain());
     }
 }
