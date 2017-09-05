@@ -26,4 +26,6 @@ public class Constants {
      * If to debug packets or not
      */
     public static final boolean DEBUG_PACKETS = true;
+
+    public static final int DEFAULT_VESSEL_TYPE = 0;
 }

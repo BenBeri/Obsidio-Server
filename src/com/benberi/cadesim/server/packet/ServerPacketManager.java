@@ -3,7 +3,7 @@ package com.benberi.cadesim.server.packet;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.Player;
-import com.benberi.cadesim.server.packet.in.PlayerRegisterPacket;
+import com.benberi.cadesim.server.packet.in.PlayerLoginPacket;
 import io.netty.channel.Channel;
 
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class ServerPacketManager {
     }
 
     private void registerPackets() {
-        executors.put(0, new PlayerRegisterPacket(context));
+        executors.put(0, new PlayerLoginPacket(context));
     }
 
     public boolean process(Channel c, Packet packet) {

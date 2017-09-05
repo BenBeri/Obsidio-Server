@@ -28,7 +28,7 @@ public class Player {
     /**
      * Player's vessel
      */
-    private Vessel vessel;
+    private Vessel vessel = Vessel.createVesselByType(Constants.DEFAULT_VESSEL_TYPE);
 
     /**
      * X-axis position of the player
@@ -120,11 +120,8 @@ public class Player {
     }
 
 
-    public void register(String name, int shipType, int jobbersType) {
+    public void register(String name) {
         this.name = name;
-        this.vessel = Vessel.createVesselByType(shipType);
-        this.vessel.setJobbersQuality(jobbersType);
-
         context.getPlayerManager().instancePlayer(this);
         this.isRegistered = true;
     }
