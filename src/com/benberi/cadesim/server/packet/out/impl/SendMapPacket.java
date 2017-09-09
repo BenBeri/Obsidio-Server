@@ -1,34 +1,31 @@
-package com.benberi.cadesim.server.packet.out;
+package com.benberi.cadesim.server.packet.out.impl;
 
+import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.codec.util.PacketLength;
 import com.benberi.cadesim.server.model.Player;
 import com.benberi.cadesim.server.model.cade.BlockadeMap;
+import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 
 /**
  * Adds a player ship to the game board (position, ship type, player name, and ID)
  */
-public class SendMapPacket extends Packet {
+public class SendMapPacket extends OutgoingPacket {
 
-    public SendMapPacket(BlockadeMap bmap) {
-        super(3);
+    private BlockadeMap bmap;
 
+    public SendMapPacket() {
+        super(OutGoingPackets.SEND_MAP);
+    }
+
+    public void setMap(BlockadeMap bmap) {
+        this.bmap = bmap;
+    }
+
+    public void encode() {
         int[][] map = bmap.getMap();
 
         setPacketLengthType(PacketLength.SHORT);
-
-        int size = 0;
-
-       for (int x = 0; x < map.length; x++) {
-            for (int y = 0; y < map[x].length; y++) {
-                int tile = map[x][y];
-                if (tile != 0) {
-                    size += 3;
-                }
-            }
-        }
-
-        setLength(size);
 
         for (int x = 0; x < map.length; x++) {
             for (int y = 0; y < map[x].length; y++) {
@@ -41,5 +38,6 @@ public class SendMapPacket extends Packet {
             }
         }
 
+        setLength(getBuffer().readableBytes());
     }
 }

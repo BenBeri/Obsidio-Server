@@ -78,7 +78,6 @@ public class PacketDecoder extends StatefulByteDecoder<PacketDecodeState> {
     private void decodeLengthType(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
         if (buffer.isReadable()) {
             byte lengthType = buffer.readByte();
-            System.out.println("length type: " + lengthType);
             PacketLength length = PacketLength.get(lengthType);
             if (length != null) {
                 this.lengthType = length;
@@ -122,12 +121,9 @@ public class PacketDecoder extends StatefulByteDecoder<PacketDecodeState> {
      * @param out       POJO objects list
      */
     private void decodeData(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
-        System.out.println(buffer.readableBytes() + " " + length);
         if (buffer.readableBytes() >= length) {
             ByteBuf data = buffer.readBytes(length);
             out.add(new Packet(opcode, data));
-
-            buffer.clear(); // clear the buffer
             setState(PacketDecodeState.OPCODE);
         }
     }

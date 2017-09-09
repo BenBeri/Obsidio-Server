@@ -18,6 +18,7 @@ public class GameService implements Runnable {
 
     @Override
     public void run() {
+        context.getPackets().queuePackets();
         context.getTimeMachine().tick();
         context.getPlayerManager().tick();
     }

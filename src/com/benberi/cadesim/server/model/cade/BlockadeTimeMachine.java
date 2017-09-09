@@ -25,6 +25,8 @@ public class BlockadeTimeMachine {
         this.context = context;
     }
 
+    private long turnResetDelay = -1;
+
     /**
      * The main tick of blockade time machine
      */
@@ -36,7 +38,12 @@ public class BlockadeTimeMachine {
         gameTime--; // Tick blockade time
 
         if (turnTime == 0) {
-            renewTurn();
+            if (turnResetDelay == -1) {
+                context.getPlayerManager().handleTurn();
+            }
+            else if (System.currentTimeMillis() >= turnResetDelay) {
+                renewTurn();
+            }
             return;
         }
 
@@ -44,12 +51,16 @@ public class BlockadeTimeMachine {
     }
 
 
+    public void setTurnResetDelay(long delay) {
+        this.turnResetDelay = delay;
+    }
+
     /**
      * Gets the blockade time
      * @return {@link #gameTime}
      */
     public int getGameTime() {
-        return gameTime;
+        return gameTime / 10;
     }
 
     /**
@@ -57,7 +68,7 @@ public class BlockadeTimeMachine {
      * @return {@link #turnTime}
      */
     public int getTurnTime() {
-        return turnTime;
+        return turnTime / 10;
     }
 
     /**
@@ -65,5 +76,6 @@ public class BlockadeTimeMachine {
      */
     private void renewTurn() {
         turnTime = Constants.TURN_TIME;
+        turnResetDelay = -1;
     }
 }

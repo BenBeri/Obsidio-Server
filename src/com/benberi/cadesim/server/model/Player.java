@@ -2,12 +2,18 @@ package com.benberi.cadesim.server.model;
 
 import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.codec.util.Packet;
+import com.benberi.cadesim.server.model.move.MoveTokensHandler;
+import com.benberi.cadesim.server.model.move.MoveType;
 import com.benberi.cadesim.server.model.vessel.Vessel;
-import com.benberi.cadesim.server.packet.out.SendMapPacket;
-import com.sun.security.ntlm.Server;
+import com.benberi.cadesim.server.model.vessel.VesselFace;
+import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
+import com.benberi.cadesim.server.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.packet.out.impl.*;
 import io.netty.channel.Channel;
+import sun.security.krb5.internal.PAData;
 
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 
@@ -23,12 +29,17 @@ public class Player {
     /**
      * The name of the player
      */
-    private String name = "A Vessel";
+    private String name = "";
 
     /**
      * Player's vessel
      */
     private Vessel vessel = Vessel.createVesselByType(Constants.DEFAULT_VESSEL_TYPE);
+
+    /**
+     * Move tokens handler
+     */
+    private MoveTokensHandler tokens;
 
     /**
      * X-axis position of the player
@@ -43,7 +54,7 @@ public class Player {
     /**
      * The face of the player (rotation id)
      */
-    private int face;
+    private VesselFace face = VesselFace.NORTH;
 
     /**
      * The server context
@@ -55,20 +66,22 @@ public class Player {
      */
     private boolean isRegistered;
 
+    private List<VesselMovementAnimation> animations;
+
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
         this.context = ctx;
+        this.tokens = new MoveTokensHandler(vessel);
     }
 
     /**
      * Sends a packet
-     * @param p The packet to send
+     * @param packet The packet to send
      */
-    public void sendPacket(Packet p) {
-        if (Constants.DEBUG_PACKETS) {
-            logger.info("Writing packet in channel " + channel.remoteAddress() + " packet: " + p.toString());
-        }
-        channel.write(p);
+    public void sendPacket(OutgoingPacket packet) {
+        packet.encode();
+        channel.write(packet);
+        channel.flush();
     }
 
     /**
@@ -86,6 +99,7 @@ public class Player {
     public ServerContext getContext() {
         return context;
     }
+
 
     public String getName() {
         return name;
@@ -111,19 +125,21 @@ public class Player {
         this.y = y;
     }
 
-    public int getFace() {
+    public VesselFace getFace() {
         return face;
     }
 
-    public void setFace(int face) {
+    public void setFace(VesselFace face) {
         this.face = face;
     }
 
 
     public void register(String name) {
         this.name = name;
-        context.getPlayerManager().instancePlayer(this);
         this.isRegistered = true;
+
+        Random r = new Random();
+        this.x = r.nextInt(10);
     }
 
     /**
@@ -138,12 +154,38 @@ public class Player {
      * Sends the game board to the client
      */
     public void sendBoard() {
-        Packet packet = new SendMapPacket(context.getMap());
+        SendMapPacket packet = new SendMapPacket();
+        packet.setMap(context.getMap());
+        sendPacket(packet);
+    }
+
+    /**
+     * Sends ship damage packet
+     */
+    public void sendDamage() {
+        SendDamagePacket packet = new SendDamagePacket();
+        packet.setDamage(vessel.getDamage());
+        packet.setBilge(vessel.getBilge());
+        sendPacket(packet);
+    }
+
+    /**
+     * Sends move tokens to the client from the token handler
+     * {@link #tokens}
+     */
+    public void sendTokens() {
+        SendMoveTokensPacket packet = new SendMoveTokensPacket();
+        packet.setLeft(tokens.getLeft());
+        packet.setRight(tokens.getRight());
+        packet.setForward(tokens.getForward());
+        packet.setCannons(tokens.getCannons());
+
         sendPacket(packet);
     }
 
     /**
      * Proper equality check
+     *
      * @param o The object to check - supports for Player, Channel
      * @return <code>TRUE</code> If the given object equals to either channel, player or other.
      */
@@ -151,10 +193,68 @@ public class Player {
     public boolean equals(Object o) {
         if (o instanceof Player) {
             return this == o;
-        }
-        else if (o instanceof Channel) {
+        } else if (o instanceof Channel) {
             return this.channel == o;
         }
         return super.equals(o);
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void sendMovePlaceVerification(int slot, int move) {
+        System.out.println("move place send");
+        MovePlaceVerificationPacket packet = new MovePlaceVerificationPacket();
+        packet.setSlot(slot);
+        packet.setMove(move);
+        sendPacket(packet);
+    }
+
+    /**
+     * Places a move
+     * @param slot  The slot to place at
+     * @param move  The move to place
+     */
+    public void placeMove(int slot, int move) {
+        MoveType moveType = MoveType.forId(move);
+        if (moveType != null) {
+            MoveType currentMove = vessel.getMoves().getMove(slot);
+
+            if (tokens.useTokenForMove(moveType)) {
+                if (currentMove != MoveType.NONE) {
+                    tokens.addToken(currentMove, 1);
+                }
+
+                vessel.getMoves().setMove(slot, moveType);
+                sendMovePlaceVerification(slot, move);
+                sendTokens();
+            }
+            else {
+                if (currentMove != MoveType.NONE) {
+                    tokens.addToken(currentMove, 1);
+                    sendMovePlaceVerification(slot, MoveType.NONE.getId());
+                    sendTokens();
+                }
+            }
+        }
+    }
+
+
+    public List<VesselMovementAnimation> getAnimations() {
+        return animations;
+    }
+
+    public void setAnimations(List<VesselMovementAnimation> animations) {
+        this.animations = animations;
+    }
+
+    public int getAnimationTime() {
+        int time = 0;
+        for (VesselMovementAnimation anim : animations) {
+            time += anim.getTime();
+        }
+
+        return time;
     }
 }

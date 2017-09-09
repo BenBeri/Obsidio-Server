@@ -48,7 +48,7 @@ public class CadeServer extends ServerBootstrap implements Runnable {
         group(worker);
         channel(NioServerSocketChannel.class);
         option(ChannelOption.SO_BACKLOG, 100);
-        childOption(ChannelOption.TCP_NODELAY, true);
+       // childOption(ChannelOption.TCP_NODELAY, true);
 
         childHandler(new ChannelInitializer<SocketChannel>() {
             @Override

@@ -1,5 +1,6 @@
 package com.benberi.cadesim.server;
 
+import com.benberi.cadesim.server.model.Player;
 import com.benberi.cadesim.server.model.PlayerManager;
 import com.benberi.cadesim.server.model.cade.BlockadeMap;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;

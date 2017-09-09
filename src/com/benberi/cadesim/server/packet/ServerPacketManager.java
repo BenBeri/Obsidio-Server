@@ -1,18 +1,33 @@
 package com.benberi.cadesim.server.packet;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.IncomingPackets;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.Player;
 import com.benberi.cadesim.server.packet.in.PlayerLoginPacket;
+import com.benberi.cadesim.server.packet.in.PlayerPlaceMovePacket;
 import io.netty.channel.Channel;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServerPacketManager {
 
+    /**
+     * The packet executors
+     *
+     * Every packet registered incoming packet in the server
+     */
     private Map<Integer, ServerPacketExecutor> executors = new HashMap<Integer, ServerPacketExecutor>();
 
+    /**
+     * The packets queue
+     */
+    private Queue<IncomingPacket> packetQueue = new ConcurrentLinkedQueue<>();
+
+    /**
+     * The server context
+     */
     private ServerContext context;
 
     public ServerPacketManager(ServerContext context) {
@@ -20,16 +35,38 @@ public class ServerPacketManager {
         registerPackets();
     }
 
-    private void registerPackets() {
-        executors.put(0, new PlayerLoginPacket(context));
+    /**
+     * Queues all packets and executes them
+     */
+    public void queuePackets() {
+        while(!packetQueue.isEmpty()) {
+            IncomingPacket packet = packetQueue.poll();
+            process(packet.getChannel(), packet.getPacket());
+        }
     }
 
-    public boolean process(Channel c, Packet packet) {
-        System.out.println("trying to process packet");
+    /**
+     * Registers packet executors
+     */
+    private void registerPackets() {
+        executors.put(IncomingPackets.LOGIN_PACKET, new PlayerLoginPacket(context));
+        executors.put(IncomingPackets.PLACE_MOVE, new PlayerPlaceMovePacket(context));
+    }
 
+    /**
+     * Processes a packet
+     * @param c         The sender channel
+     * @param packet    The packet
+     * @return  status
+     */
+    public boolean process(Channel c, Packet packet) {
         Player p = context.getPlayerManager().getPlayerByChannel(c);
         if (p == null) {
-            System.err.println("unknown player for channel");
+            return false;
+        }
+
+        // Drop packet if player is not registered and sending other packets than login
+        if (!p.isRegistered() && packet.getOpcode() != IncomingPackets.LOGIN_PACKET) {
             return false;
         }
 
@@ -38,11 +75,18 @@ public class ServerPacketManager {
             ServerPacketExecutor executor = entry.getValue();
 
             if (packet.getOpcode() == opcode) {
-                System.out.println("peee peee");
                 executor.execute(p, packet);
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Adds a packet to the queue
+     * @param p The incoming packet
+     */
+    public void addToQueue(IncomingPacket p) {
+        packetQueue.add(p);
     }
 }
