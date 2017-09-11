@@ -4,4 +4,5 @@ public class IncomingPackets {
 
     public static final int LOGIN_PACKET = 0;
     public static final int PLACE_MOVE = 1;
+    public static final int MANUAVER_SLOT_CHANGED = 2;
 }

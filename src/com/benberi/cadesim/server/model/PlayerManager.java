@@ -53,13 +53,14 @@ public class PlayerManager {
         // Send tokens
 
         int maxSlotsFilled = 0;
+        int maxShotsFilled = 0;
 
         List<Player> registered = listRegisteredPlayers();
 
         // Go through all players
         for (Player p : registered) {
             // His moves selected
-            TurnMoveHandler turns = p.getVessel().getMoves();
+            TurnMoveHandler turns = p.getMoves();
 
             // Go through all 4 moves
             for(int slot = 0; slot < 4; slot++) {
@@ -79,8 +80,14 @@ public class PlayerManager {
             }
 
             int count = p.getAnimationStructure().countFilledTurnSlots();
+            int countShoots = p.getAnimationStructure().countFilledShootSlots();
+
             if (count > maxSlotsFilled) {
                 maxSlotsFilled = count;
+            }
+
+            if (countShoots > maxShotsFilled) {
+                maxShotsFilled = countShoots;
             }
         }
 
@@ -89,13 +96,21 @@ public class PlayerManager {
             SendPlayersAnimationStructurePacket packet = new SendPlayersAnimationStructurePacket();
             packet.setPlayers(registered);
             p.sendPacket(packet);
-            p.getVessel().getMoves().resetTurn();
+            p.getMoves().resetTurn();
             p.sendTokens();
-
-            System.out.println("sent") ;
         }
 
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 600));
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 800) + (maxShotsFilled * 2000));
+    }
+
+    public void sendMoveBar(Player pl) {
+        for (Player p : listRegisteredPlayers()) {
+            SendPlayerMoveBar packet = new SendPlayerMoveBar();
+            packet.setPlayerName(pl.getName());
+            packet.setMoves(p.getMoves());
+
+            p.sendPacket(packet);
+        }
     }
 
     public List<Player> listRegisteredPlayers() {
@@ -231,5 +246,11 @@ public class PlayerManager {
 
         sendPlayerForAll(pl);
 
+    }
+
+    public void resetMoveBars() {
+        for (Player p : listRegisteredPlayers()) {
+            sendMoveBar(p);
+        }
     }
 }

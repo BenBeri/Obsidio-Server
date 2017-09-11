@@ -26,8 +26,19 @@ public class MoveAnimationStructure {
         int count = 0;
         for (int slot = 0; slot < turns.length; slot++) {
             MoveAnimationTurn turn = turns[slot];
-            if (turn.getAnimation() != VesselMovementAnimation.NO_ANIMATION ||
-                    turn.getLeftShoots() > 0 || turn.getRightShoots() > 0) {
+            if (turn.getAnimation() != VesselMovementAnimation.NO_ANIMATION) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public int countFilledShootSlots() {
+        int count = 0;
+        for (int slot = 0; slot < turns.length; slot++) {
+            MoveAnimationTurn turn = turns[slot];
+            if (turn.getLeftShoots() > 0 || turn.getRightShoots() > 0) {
                 count++;
             }
         }

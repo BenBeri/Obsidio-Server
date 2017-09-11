@@ -5,6 +5,7 @@ import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.move.MoveTokensHandler;
 import com.benberi.cadesim.server.model.move.MoveType;
+import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.vessel.Vessel;
 import com.benberi.cadesim.server.model.vessel.VesselFace;
 import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
 
 
 public class Player {
+
 
     private Logger logger = Logger.getLogger("Player-Logger");
 
@@ -36,6 +38,8 @@ public class Player {
      * Player's vessel
      */
     private Vessel vessel = Vessel.createVesselByType(Constants.DEFAULT_VESSEL_TYPE);
+
+    private final TurnMoveHandler moves;
 
     /**
      * Move tokens handler
@@ -78,6 +82,7 @@ public class Player {
         this.channel = c;
         this.context = ctx;
         this.tokens = new MoveTokensHandler(vessel);
+        this.moves = new TurnMoveHandler(this);
     }
 
     /**
@@ -150,6 +155,10 @@ public class Player {
 
     public MoveAnimationStructure getAnimationStructure() {
         return animation;
+    }
+
+    public TurnMoveHandler getMoves() {
+        return moves;
     }
 
     /**
@@ -227,16 +236,19 @@ public class Player {
      * @param move  The move to place
      */
     public void placeMove(int slot, int move) {
+        if (moves.getManuaverSlot() == slot) {
+            return;
+        }
         MoveType moveType = MoveType.forId(move);
         if (moveType != null) {
-            MoveType currentMove = vessel.getMoves().getMove(slot);
+            MoveType currentMove = moves.getMove(slot);
 
             if (tokens.useTokenForMove(moveType)) {
                 if (currentMove != MoveType.NONE) {
                     tokens.addToken(currentMove, 1);
                 }
 
-                vessel.getMoves().setMove(slot, moveType);
+                moves.setMove(slot, moveType);
                 sendMovePlaceVerification(slot, move);
                 sendTokens();
             }
@@ -247,6 +259,8 @@ public class Player {
                     sendTokens();
                 }
             }
+
+            context.getPlayerManager().sendMoveBar(this);
         }
     }
 

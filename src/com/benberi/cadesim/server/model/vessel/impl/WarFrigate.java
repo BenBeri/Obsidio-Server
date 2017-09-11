@@ -19,4 +19,9 @@ public class WarFrigate extends Vessel {
     public boolean isDualCannon() {
         return true;
     }
+
+    @Override
+    public boolean isManuaver() {
+        return true;
+    }
 }

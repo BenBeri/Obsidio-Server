@@ -27,16 +27,12 @@ public abstract class Vessel {
     /**
      * The select moves handler
      */
-    private TurnMoveHandler moves = new TurnMoveHandler();
+    private TurnMoveHandler moves;
 
     /**
      * The ID of the vessel type
      */
     public abstract int getID();
-
-    public TurnMoveHandler getMoves() {
-        return moves;
-    }
 
     public static Vessel createVesselByType(int type) {
         switch (type) {
@@ -71,4 +67,5 @@ public abstract class Vessel {
 
     public abstract int getMaxCannons();
     public abstract boolean isDualCannon();
+    public abstract boolean isManuaver();
 }

@@ -82,5 +82,6 @@ public class BlockadeTimeMachine {
     private void renewTurn() {
         turnTime = Constants.TURN_TIME;
         turnResetDelay = -1;
+        context.getPlayerManager().resetMoveBars();
     }
 }

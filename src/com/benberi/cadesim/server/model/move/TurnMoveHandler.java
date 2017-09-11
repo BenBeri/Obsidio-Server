@@ -1,6 +1,10 @@
 package com.benberi.cadesim.server.model.move;
 
+import com.benberi.cadesim.server.model.Player;
+
 public class TurnMoveHandler {
+
+    private Player player;
 
     /**
      * The moves
@@ -17,7 +21,11 @@ public class TurnMoveHandler {
      */
     private int[] rightCannons = new int[4];
 
-    public TurnMoveHandler() {
+    private int manuaverSlot = 3;
+
+    public TurnMoveHandler(Player p)
+    {
+        this.player = p;
         resetTurn();
     }
 
@@ -63,5 +71,23 @@ public class TurnMoveHandler {
             leftCannons[i] = 0;
             rightCannons[i] = 0;
         }
+    }
+
+    public void setManuaverSlot(int manuaverSlot) {
+        int prevSlot = this.manuaverSlot;
+        System.out.println("prev: " + prevSlot);
+        this.manuaverSlot = manuaverSlot;
+        System.out.println("new: " + manuaverSlot);
+        MoveType move = getMove(manuaverSlot);
+        if (move != MoveType.NONE) {
+            setMove(prevSlot, move);
+            setMove(manuaverSlot, MoveType.NONE);
+            player.sendMovePlaceVerification(manuaverSlot, MoveType.NONE.getId());
+            player.sendMovePlaceVerification(prevSlot, move.getId());
+        }
+    }
+
+    public int getManuaverSlot() {
+        return manuaverSlot;
     }
 }

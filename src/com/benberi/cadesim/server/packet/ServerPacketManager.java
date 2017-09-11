@@ -4,6 +4,7 @@ import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.IncomingPackets;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.Player;
+import com.benberi.cadesim.server.packet.in.ManuaverSlotChanged;
 import com.benberi.cadesim.server.packet.in.PlayerLoginPacket;
 import com.benberi.cadesim.server.packet.in.PlayerPlaceMovePacket;
 import io.netty.channel.Channel;
@@ -51,6 +52,7 @@ public class ServerPacketManager {
     private void registerPackets() {
         executors.put(IncomingPackets.LOGIN_PACKET, new PlayerLoginPacket(context));
         executors.put(IncomingPackets.PLACE_MOVE, new PlayerPlaceMovePacket(context));
+        executors.put(IncomingPackets.MANUAVER_SLOT_CHANGED, new ManuaverSlotChanged(context));
     }
 
     /**
