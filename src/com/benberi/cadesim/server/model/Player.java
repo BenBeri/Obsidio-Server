@@ -9,6 +9,7 @@ import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.vessel.Vessel;
 import com.benberi.cadesim.server.model.vessel.VesselFace;
 import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
+import com.benberi.cadesim.server.packet.in.PlayerPlaceCannonPacket;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.packet.out.impl.*;
 import io.netty.channel.Channel;
@@ -64,7 +65,7 @@ public class Player {
     /**
      * The face of the player (rotation id)
      */
-    private VesselFace face = VesselFace.NORTH;
+    private VesselFace face = VesselFace.EAST;
 
     /**
      * The server context
@@ -280,5 +281,60 @@ public class Player {
         }
 
         return time;
+    }
+
+    public void placeCannon(int slot, int side) {
+        if (side == 0) {
+            int shoots = moves.getLeftCannons(slot);
+            if (shoots == 0) {
+                moves.setLeftCannons(slot, 1);
+            }
+            else {
+                if (vessel.isDualCannon()) {
+                    if (shoots < 2) {
+                        moves.setLeftCannons(slot, 2);
+                    }
+                    else {
+                        moves.setLeftCannons(slot, 0);
+                    }
+                }
+                else {
+                    moves.setLeftCannons(slot, 0);
+                }
+            }
+
+            CannonPlaceVerificationPacket p = new CannonPlaceVerificationPacket();
+            p.setSide(0);
+            p.setSlot(slot);
+            p.setAmount(moves.getLeftCannons(slot));
+            sendPacket(p);
+        }
+        else {
+            int shoots = moves.getRightCannons(slot);
+            if (shoots == 0) {
+                moves.setRightCannons(slot, 1);
+            }
+            else {
+                if (vessel.isDualCannon()) {
+                    if (shoots < 2) {
+                        moves.setRightCannons(slot, 2);
+                    }
+                    else {
+                        moves.setRightCannons(slot, 0);
+                    }
+                }
+                else {
+                    moves.setRightCannons(slot, 0);
+                }
+            }
+
+            CannonPlaceVerificationPacket p = new CannonPlaceVerificationPacket();
+            p.setSide(1);
+            p.setSlot(slot);
+            p.setAmount(moves.getRightCannons(slot));
+            sendPacket(p);
+        }
+
+        context.getPlayerManager().sendMoveBar(this);
     }
 }

@@ -70,12 +70,7 @@ public class PlayerManager {
 
                 MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(slot);
                 turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
-                if (slot == 0) {
-                    turnAnimation.setLeftShoots(2);
-                }
-                else {
-                    turnAnimation.setLeftShoots(leftShoots);
-                }
+                turnAnimation.setLeftShoots(leftShoots);
                 turnAnimation.setRightShoots(rightShoots);
             }
 
