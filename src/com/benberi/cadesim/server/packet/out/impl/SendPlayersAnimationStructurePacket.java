@@ -3,16 +3,18 @@ package com.benberi.cadesim.server.packet.out.impl;
 import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
 import com.benberi.cadesim.server.model.Player;
+import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
+import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 
 import java.util.List;
 
-public class SendVesselTurnAnimations extends OutgoingPacket {
+public class SendPlayersAnimationStructurePacket extends OutgoingPacket {
 
     private List<Player> players;
 
-    public SendVesselTurnAnimations() {
+    public SendPlayersAnimationStructurePacket() {
         super(OutGoingPackets.TURN_VESSEL_ANIMS);
     }
 
@@ -29,15 +31,22 @@ public class SendVesselTurnAnimations extends OutgoingPacket {
 
         for (Player p : players) {
 
-            // Write the name of the player
+            // The structure
+            MoveAnimationStructure structure = p.getAnimationStructure();
+
+            // Write the name of the player as a key
             writeByteString(p.getName());
 
-            List<VesselMovementAnimation> animations = p.getAnimations();
+            for (int slot = 0; slot < 4; slot++) {
 
-            // Go through 4 moves
-            for (VesselMovementAnimation anim : animations) {
-                // write anim ID
-                writeByte(anim.getId());
+                // The turn
+                MoveAnimationTurn turn = structure.getTurn(slot);
+
+                // Write the data
+                writeByte(turn.getAnimation().getId());
+                writeByte(turn.getSubAnimation().getId());
+                writeByte(turn.getLeftShoots());
+                writeByte(turn.getRightShoots());
             }
         }
 

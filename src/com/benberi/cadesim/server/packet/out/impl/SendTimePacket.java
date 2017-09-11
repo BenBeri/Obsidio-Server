@@ -36,8 +36,8 @@ public class SendTimePacket extends OutgoingPacket {
         int turnTime = this.turnTime;
 
         setPacketLengthType(PacketLength.BYTE);
-        setLength(8); // 2 integers 8 bits
         writeInt(blockadeTime); // blockade time
         writeInt(turnTime); // turn time
+        setLength(getBuffer().readableBytes()); // 2 integers 8 bits
     }
 }

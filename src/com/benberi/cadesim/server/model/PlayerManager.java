@@ -4,7 +4,10 @@ import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
+import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
+import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.move.MoveType;
+import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.packet.out.impl.*;
@@ -47,36 +50,52 @@ public class PlayerManager {
     }
 
     public void handleTurn() {
-        int max = 0;
         // Send tokens
+
+        int maxSlotsFilled = 0;
 
         List<Player> registered = listRegisteredPlayers();
 
+        // Go through all players
         for (Player p : registered) {
-            List<VesselMovementAnimation> animations = new ArrayList<>();
+            // His moves selected
+            TurnMoveHandler turns = p.getVessel().getMoves();
 
-            for (MoveType move : p.getVessel().getMoves().getMoves()) {
-                animations.add(VesselMovementAnimation.getIdForMoveType(move));
+            // Go through all 4 moves
+            for(int slot = 0; slot < 4; slot++) {
+                MoveType move = turns.getMove(slot);
+                int leftShoots = turns.getLeftCannons(slot);
+                int rightShoots = turns.getRightCannons(slot);
+
+                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(slot);
+                turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+                if (slot == 0) {
+                    turnAnimation.setLeftShoots(2);
+                }
+                else {
+                    turnAnimation.setLeftShoots(leftShoots);
+                }
+                turnAnimation.setRightShoots(rightShoots);
             }
 
-            p.setAnimations(animations);
-
-            int time = p.getAnimationTime();
-            if (time > max) {
-                max = time;
+            int count = p.getAnimationStructure().countFilledTurnSlots();
+            if (count > maxSlotsFilled) {
+                maxSlotsFilled = count;
             }
         }
+
+        // Send packets to the players
         for (Player p : registered) {
-
-            SendVesselTurnAnimations animations = new SendVesselTurnAnimations();
-            animations.setPlayers(registered);
-
-            p.sendPacket(animations);
+            SendPlayersAnimationStructurePacket packet = new SendPlayersAnimationStructurePacket();
+            packet.setPlayers(registered);
+            p.sendPacket(packet);
             p.getVessel().getMoves().resetTurn();
             p.sendTokens();
+
+            System.out.println("sent") ;
         }
 
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + max);
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 600));
     }
 
     public List<Player> listRegisteredPlayers() {

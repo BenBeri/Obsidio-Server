@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model;
 
 import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.move.MoveTokensHandler;
 import com.benberi.cadesim.server.model.move.MoveType;
 import com.benberi.cadesim.server.model.vessel.Vessel;
@@ -40,6 +41,11 @@ public class Player {
      * Move tokens handler
      */
     private MoveTokensHandler tokens;
+
+    /**
+     * The animation structure
+     */
+    private MoveAnimationStructure animation = new MoveAnimationStructure();
 
     /**
      * X-axis position of the player
@@ -140,6 +146,10 @@ public class Player {
 
         Random r = new Random();
         this.x = r.nextInt(10);
+    }
+
+    public MoveAnimationStructure getAnimationStructure() {
+        return animation;
     }
 
     /**

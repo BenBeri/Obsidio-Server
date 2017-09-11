@@ -15,7 +15,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf buffer) throws Exception {
 
-        if (Constants.DEBUG_PACKETS) {
+        if (Constants.DEBUG_PACKETS && packet.getOpcode() != 3) {
             logger.info("Writing packet in channel " + ctx.channel().remoteAddress() + " packet: " + packet.toString());
         }
 

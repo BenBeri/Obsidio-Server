@@ -39,7 +39,12 @@ public class BlockadeTimeMachine {
 
         if (turnTime == 0) {
             if (turnResetDelay == -1) {
-                context.getPlayerManager().handleTurn();
+                try {
+                    context.getPlayerManager().handleTurn();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             else if (System.currentTimeMillis() >= turnResetDelay) {
                 renewTurn();
