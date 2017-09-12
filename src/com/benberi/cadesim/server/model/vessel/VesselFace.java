@@ -16,4 +16,14 @@ public enum VesselFace {
     public int getDirectionId() {
         return this.directionId;
     }
+
+    public static VesselFace forId(int id) {
+        for(VesselFace face : values()) {
+            if (face.getDirectionId() == id) {
+                return face;
+            }
+        }
+
+        return NORTH;
+    }
 }

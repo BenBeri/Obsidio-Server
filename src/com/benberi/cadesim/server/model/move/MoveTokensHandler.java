@@ -7,17 +7,17 @@ public class MoveTokensHandler {
     /**
      * Left move tokens
      */
-    private int left = 10;
+    private int left = 100;
 
     /**
      * Forward move tokens
      */
-    private int forward = 10;
+    private int forward = 100;
 
     /**
      * Right move tokens
      */
-    private int right = 10;
+    private int right = 100;
 
     /**
      * Cannons

@@ -86,6 +86,11 @@ public class Player {
         this.moves = new TurnMoveHandler(this);
     }
 
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     /**
      * Sends a packet
      * @param packet The packet to send
@@ -151,7 +156,7 @@ public class Player {
         this.isRegistered = true;
 
         Random r = new Random();
-        this.x = r.nextInt(10);
+        this.x = 0; //r.nextInt(10);
     }
 
     public MoveAnimationStructure getAnimationStructure() {
@@ -184,7 +189,8 @@ public class Player {
      */
     public void sendDamage() {
         SendDamagePacket packet = new SendDamagePacket();
-        packet.setDamage(vessel.getDamage());
+        packet.setDamage(vessel.getDamagePercentage());
+        System.out.println(vessel.getDamagePercentage());
         packet.setBilge(vessel.getBilge());
         sendPacket(packet);
     }
@@ -336,5 +342,12 @@ public class Player {
         }
 
         context.getPlayerManager().sendMoveBar(this);
+    }
+
+    /**
+     * Logical updates during the game
+     */
+    public void update() {
+
     }
 }

@@ -1,6 +1,5 @@
 package com.benberi.cadesim.server.model.vessel;
 
-import com.benberi.cadesim.server.model.move.MoveType;
 import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.vessel.impl.WarFrigate;
 
@@ -12,7 +11,7 @@ public abstract class Vessel {
     /**
      * The damage of the vessel
      */
-    private int damage;
+    private double damage;
 
     /**
      * The bilge of the vessel
@@ -30,10 +29,76 @@ public abstract class Vessel {
     private TurnMoveHandler moves;
 
     /**
+     * Appends damage
+     *
+     * @param damage    The damage amount to append
+     */
+    public void appendDamage(double damage) {
+        this.damage += damage;
+    }
+
+    /**
+     * Gets the bilge
+     *
+     * @return  The bilge
+     */
+    public int getBilge() {
+        return this.bilge;
+    }
+
+    /**
+     * Gets the damage
+     *
+     * @return  The damage
+     */
+    public double getDamage() {
+        return this.damage;
+    }
+
+    public int getDamagePercentage() {
+        double percentage = damage / getMaxDamage() * 100;
+        return (int) percentage;
+    }
+
+    public void setJobbersQuality(int jobbersQuality) {
+        this.jobbersQuality = jobbersQuality;
+    }
+
+    /**
+     * @return The maximum amount of filled cannons allowed
+     */
+    public abstract int getMaxCannons();
+
+    /**
+     * @return If the vessel is dual-cannon shoot per turn
+     */
+    public abstract boolean isDualCannon();
+
+    /**
+     * @return If the vessel is 3-move only
+     */
+    public abstract boolean isManuaver();
+
+    /**
+     * @return  The maximum damage
+     */
+    public abstract double getMaxDamage();
+
+    /**
+     * @return The cannon type
+     */
+    public abstract CannonType getCannonType();
+
+    /**
      * The ID of the vessel type
      */
     public abstract int getID();
 
+    /**
+     * Creates a vessel by given vessel type
+     * @param type  The vessel type
+     * @return The created vessel
+     */
     public static Vessel createVesselByType(int type) {
         switch (type) {
             default:
@@ -41,31 +106,4 @@ public abstract class Vessel {
                 return new WarFrigate();
         }
     }
-
-    public int getAnimationTime() {
-        int time = 0;
-        for(MoveType type : moves.getMoves()) {
-            if (type != MoveType.NONE) {
-                time += 600;
-            }
-        }
-
-        return time;
-    }
-
-    public int getBilge() {
-        return this.bilge;
-    }
-
-    public int getDamage() {
-        return this.damage;
-    }
-
-    public void setJobbersQuality(int jobbersQuality) {
-        this.jobbersQuality = jobbersQuality;
-    }
-
-    public abstract int getMaxCannons();
-    public abstract boolean isDualCannon();
-    public abstract boolean isManuaver();
 }

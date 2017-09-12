@@ -19,8 +19,8 @@ public class SendDamagePacket extends OutgoingPacket {
         super(OutGoingPackets.SHIP_DAMAGE_BILGE);
     }
 
-    public void setDamage(int damage) {
-        this.damage = damage;
+    public void setDamage(double damage) {
+        this.damage = (int) damage;
     }
 
     public void setBilge(int bilge) {

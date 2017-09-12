@@ -2,17 +2,13 @@ package com.benberi.cadesim.server.model;
 
 import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
-import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.move.MoveType;
-import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
-import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.packet.out.impl.*;
+import com.benberi.cadesim.server.util.Direction;
 import io.netty.channel.Channel;
-import sun.security.krb5.internal.PAData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,10 +39,17 @@ public class PlayerManager {
      * Ticks all players
      */
     public void tick() {
+
+        // Send time ~ every second
         if (System.currentTimeMillis() - lastTimeSend >= 1000) {
             sendTime();
             lastTimeSend = System.currentTimeMillis();
         }
+
+        for (Player p : listRegisteredPlayers()) {
+            p.update();
+        }
+
     }
 
     public void handleTurn() {
@@ -57,52 +60,171 @@ public class PlayerManager {
 
         List<Player> registered = listRegisteredPlayers();
 
-        // Go through all players
-        for (Player p : registered) {
-            // His moves selected
-            TurnMoveHandler turns = p.getMoves();
+        for (int turn = 0; turn < 4; turn++) {
 
-            // Go through all 4 moves
-            for(int slot = 0; slot < 4; slot++) {
-                MoveType move = turns.getMove(slot);
-                int leftShoots = turns.getLeftCannons(slot);
-                int rightShoots = turns.getRightCannons(slot);
+            for (Player p : registered) {
+                MoveType move = p.getMoves().getMove(turn);
+                move.setNextPosition(p);
+                p.setFace(move.getNextFace(p.getFace()));
+            }
 
-                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(slot);
+            for (Player p : registered) {
+                MoveType move = p.getMoves().getMove(turn);
+                int leftShoots = p.getMoves().getLeftCannons(turn);
+                int rightShoots = p.getMoves().getRightCannons(turn);
+
+                if (leftShoots > 0) {
+                    damageEntities(leftShoots, p, Direction.LEFT);
+                }
+                if (rightShoots > 0) {
+                    damageEntities(rightShoots, p, Direction.RIGHT);
+                }
+
+                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(turn);
                 turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
                 turnAnimation.setLeftShoots(leftShoots);
                 turnAnimation.setRightShoots(rightShoots);
-            }
 
-            int count = p.getAnimationStructure().countFilledTurnSlots();
-            int countShoots = p.getAnimationStructure().countFilledShootSlots();
+                int count = p.getAnimationStructure().countFilledTurnSlots();
+                int countShoots = p.getAnimationStructure().countFilledShootSlots();
 
-            if (count > maxSlotsFilled) {
-                maxSlotsFilled = count;
-            }
+                if (count > maxSlotsFilled) {
+                    maxSlotsFilled = count;
+                }
 
-            if (countShoots > maxShotsFilled) {
-                maxShotsFilled = countShoots;
+                if (countShoots > maxShotsFilled) {
+                    maxShotsFilled = countShoots;
+                }
             }
         }
 
+
         // Send packets to the players
         for (Player p : registered) {
+            System.out.println(p.getName() + " x: " + p.getX() + " y: " + p.getY());
             SendPlayersAnimationStructurePacket packet = new SendPlayersAnimationStructurePacket();
             packet.setPlayers(registered);
             p.sendPacket(packet);
+            p.sendDamage();
             p.getMoves().resetTurn();
             p.sendTokens();
         }
 
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 800) + (maxShotsFilled * 2000));
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 1100) + (maxShotsFilled * 2000));
+    }
+
+    /**
+     *
+     * @param shoots        How many shoots to calculate
+     * @param source        The shooting vessel instance
+     * @param direction     The shoot direction
+     */
+    private void damageEntities(int shoots, Player source, Direction direction) {
+        Player player = getVesselForCannonCollide(source, direction);
+        if (player != null) {
+            System.out.println("damaging..");
+            player.getVessel().appendDamage(((double) shoots * source.getVessel().getCannonType().getDamage()));
+        }
+        else {
+            System.out.println("nooo damaging..");
+        }
+    }
+
+    public Player getPlayerByosition(int x, int y) {
+        for (Player p : listRegisteredPlayers()) {
+            if (p.getX() == x && p.getY() == y) {
+                return p;
+            }
+        }
+        return  null;
+    }
+
+    private Player getVesselForCannonCollide(Player source, Direction direction) {
+        switch (direction) {
+            case LEFT:
+                switch (source.getFace().getDirectionId()) {
+                    case 2:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX(), source.getY() + i);
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                    case 6:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX() + i, source.getY());
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                    case 10:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX(), source.getY() - i);
+                            if (player != null) {
+                                System.out.println("found!");
+                                return player;
+                            }
+                        }
+                        break;
+                    case 14:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX() - i, source.getY());
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                }
+                break;
+            case RIGHT:
+                switch (source.getFace().getDirectionId()) {
+                    case 2:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX(), source.getY() - i);
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                    case 6:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX() - i, source.getY());
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                    case 10:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX(), source.getY() + i);
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                    case 14:
+                        for (int i = 1; i < 4; i++) {
+                            Player player = getPlayerByosition(source.getX() + i, source.getY());
+                            if (player != null) {
+                                return player;
+                            }
+                        }
+                        break;
+                }
+                break;
+
+        }
+
+        return null;
     }
 
     public void sendMoveBar(Player pl) {
         for (Player p : listRegisteredPlayers()) {
             SendPlayerMoveBar packet = new SendPlayerMoveBar();
             packet.setPlayerName(pl.getName());
-            packet.setMoves(p.getMoves());
+            packet.setMoves(pl.getMoves());
 
             p.sendPacket(packet);
         }
