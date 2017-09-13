@@ -1,8 +1,19 @@
 package com.benberi.cadesim.server.model.move;
 
-import com.benberi.cadesim.server.model.vessel.Vessel;
+import com.benberi.cadesim.server.Constants;
+import com.benberi.cadesim.server.model.move.token.MoveToken;
+import com.benberi.cadesim.server.model.move.token.MoveTokenComparator;
+import com.benberi.cadesim.server.model.move.token.MoveTokenList;
+import com.benberi.cadesim.server.model.player.Player;
+import com.benberi.cadesim.server.model.player.vessel.Vessel;
+import javafx.collections.transformation.SortedList;
+import javafx.scene.shape.MoveTo;
+
+import java.util.*;
 
 public class MoveTokensHandler {
+
+    private Player player;
 
     /**
      * Left move tokens
@@ -20,19 +31,61 @@ public class MoveTokensHandler {
     private int right = 100;
 
     /**
+     * List of moves
+     */
+    private MoveTokenList leftTokens = new MoveTokenList(MoveType.LEFT);
+    private MoveTokenList rightTokens = new MoveTokenList(MoveType.RIGHT);
+    private MoveTokenList forwardTokens = new MoveTokenList(MoveType.FORWARD);
+
+    private MoveTokenList tempLeftTokens = new MoveTokenList(MoveType.LEFT);
+    private MoveTokenList tempRightTokens = new MoveTokenList(MoveType.RIGHT);
+    private MoveTokenList tempForwardTokens = new MoveTokenList(MoveType.FORWARD);
+
+    /**
      * Cannons
      */
-    private int cannons;
+    private int cannons = 10;
+
+    /**
+     * The target token to generate
+     */
+    private MoveType targetTokenGeneration = MoveType.FORWARD;
+
+    /**
+     * If the token generation is automatic or not
+     */
+    private boolean automatic;
 
     /**
      * The owner vessel
      */
     private Vessel vessel;
 
-    public MoveTokensHandler(Vessel vessel) {
-        this.vessel = vessel;
+
+    public MoveTokensHandler(Player player) {
+        this.vessel = player.getVessel();
+        this.player = player;
+
+        for (int i = 0; i < 4; i++) {
+            forwardTokens.add(new MoveToken(MoveType.FORWARD));
+            if (i % 2 == 0) {
+                rightTokens.add(new MoveToken(MoveType.RIGHT));
+                leftTokens.add(new MoveToken(MoveType.LEFT));
+            }
+        }
     }
 
+    public int countLeftMoves() {
+        return leftTokens.size();
+    }
+
+    public int countRightMoves() {
+        return rightTokens.size();
+    }
+
+    public int countForwardMoves() {
+        return  forwardTokens.size();
+    }
 
     /**
      * Adds a left move token
@@ -56,6 +109,31 @@ public class MoveTokensHandler {
      */
     public void addRight(int toAdd) {
         right += toAdd;
+    }
+
+    /**
+     * Toggles the automatic move selection
+     *
+     * @param flag  If to automate or not
+     */
+    public void setAutomaticSealGeneration(boolean flag) {
+        this.automatic = flag;
+    }
+
+    /**
+     * Checks if the generation target move is automatically selected
+     *
+     * @return {@link #automatic}
+     */
+    public boolean isAutomaticSealGeneration() {
+        return this.automatic;
+    }
+
+    public void setTargetTokenGeneration(MoveType targetTokenGeneration, boolean notifyClient) {
+        this.targetTokenGeneration = targetTokenGeneration;
+        if (notifyClient) {
+            player.getPackets().sendTargetSealPosition();
+        }
     }
 
     /**
@@ -131,20 +209,20 @@ public class MoveTokensHandler {
         }
         switch (moveType) {
             case LEFT:
-                if (left > 0) {
-                    left--;
+                if (countLeftMoves() > 0) {
+                    tempLeftTokens.add(leftTokens.pollFirst());
                     return  true;
                 }
                 break;
             case RIGHT:
-                if (right > 0) {
-                    right--;
+                if (countRightMoves() > 0) {
+                    tempRightTokens.add(rightTokens.pollFirst());
                     return  true;
                 }
                 break;
             case FORWARD:
-                if (forward > 0) {
-                    forward--;
+                if (countForwardMoves() > 0) {
+                    tempForwardTokens.add(forwardTokens.pollFirst());
                     return  true;
                 }
                 break;
@@ -164,5 +242,89 @@ public class MoveTokensHandler {
                 forward += amount;
                 break;
         }
+    }
+
+    public void returnMove(MoveType currentMove) {
+        switch (currentMove) {
+            case LEFT:
+                leftTokens.add(tempLeftTokens.pollFirst());
+                break;
+            case RIGHT:
+                rightTokens.add(tempRightTokens.pollFirst());
+                break;
+            case FORWARD:
+                forwardTokens.add(tempForwardTokens.pollFirst());
+                break;
+        }
+    }
+
+    public void clearTemp() {
+        tempForwardTokens.clear();
+        tempLeftTokens.clear();
+        tempRightTokens.clear();
+    }
+
+    public void tickExpiration() {
+        processExpirationIterator(leftTokens.iterator());
+        processExpirationIterator(forwardTokens.iterator());
+        processExpirationIterator(rightTokens.iterator());
+    }
+
+    private void processExpirationIterator(Iterator<MoveToken> itr) {
+        while(itr.hasNext()) {
+            MoveToken token = itr.next();
+            token.tickTurn();
+            if (token.getTurns() > Constants.TOKEN_LIFE) {
+                itr.remove();
+            }
+        }
+    }
+
+    public void moveGenerated() {
+        switch (targetTokenGeneration) {
+            case RIGHT:
+                rightTokens.add(new MoveToken(targetTokenGeneration));
+                break;
+            case LEFT:
+                leftTokens.add(new MoveToken(targetTokenGeneration));
+                break;
+            case FORWARD:
+                forwardTokens.add(new MoveToken(targetTokenGeneration));
+                break;
+    }
+
+        if (automatic) {
+            int left = countLeftMoves();
+            int right = countRightMoves();
+            int forward = countForwardMoves();
+
+            if (left == right && left == forward) {
+                switch (targetTokenGeneration) {
+                    case FORWARD:
+                        setTargetTokenGeneration(MoveType.LEFT, true);
+                        break;
+                    case LEFT:
+                        setTargetTokenGeneration(MoveType.RIGHT, true);
+                        break;
+                    case RIGHT:
+                        setTargetTokenGeneration(MoveType.FORWARD, true);
+                        break;
+                }
+            }
+            else {
+                List<MoveTokenList> list = new ArrayList<>();
+                list.add(leftTokens);
+                list.add(rightTokens);
+                list.add(forwardTokens);
+                list.sort(Comparator.comparingInt(TreeSet::size));
+
+                this.setTargetTokenGeneration(list.get(0).getType(), true);
+            }
+
+        }
+    }
+
+    public MoveType getTargetSeal() {
+        return targetTokenGeneration;
     }
 }

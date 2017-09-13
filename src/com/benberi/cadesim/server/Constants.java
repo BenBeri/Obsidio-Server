@@ -28,4 +28,7 @@ public class Constants {
     public static final boolean DEBUG_PACKETS = true;
 
     public static final int DEFAULT_VESSEL_TYPE = 0;
+
+    public static final double BILGE_INCREASE_RATE_PER_TICK = 0.1;
+    public static final int TOKEN_LIFE = 4; // turns
 }

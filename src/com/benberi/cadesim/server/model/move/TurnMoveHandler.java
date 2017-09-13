@@ -1,9 +1,12 @@
 package com.benberi.cadesim.server.model.move;
 
-import com.benberi.cadesim.server.model.Player;
+import com.benberi.cadesim.server.model.player.Player;
 
 public class TurnMoveHandler {
 
+    /**
+     * The player instance
+     */
     private Player player;
 
     /**
@@ -21,6 +24,9 @@ public class TurnMoveHandler {
      */
     private int[] rightCannons = new int[4];
 
+    /**
+     * The manuaver slot for 3-moves ships
+     */
     private int manuaverSlot = 3;
 
     public TurnMoveHandler(Player p)
@@ -65,6 +71,9 @@ public class TurnMoveHandler {
         return rightCannons;
     }
 
+    /**
+     * Resets the turn
+     */
     public void resetTurn() {
         for(int i = 0; i < moves.length; i++) {
             moves[i] = MoveType.NONE;
@@ -73,21 +82,41 @@ public class TurnMoveHandler {
         }
     }
 
+    /**
+     * Sets the manuaver slot
+     *
+     * @param manuaverSlot  The new maneuver slot
+     */
     public void setManuaverSlot(int manuaverSlot) {
         int prevSlot = this.manuaverSlot;
-        System.out.println("prev: " + prevSlot);
         this.manuaverSlot = manuaverSlot;
-        System.out.println("new: " + manuaverSlot);
         MoveType move = getMove(manuaverSlot);
         if (move != MoveType.NONE) {
             setMove(prevSlot, move);
             setMove(manuaverSlot, MoveType.NONE);
-            player.sendMovePlaceVerification(manuaverSlot, MoveType.NONE.getId());
-            player.sendMovePlaceVerification(prevSlot, move.getId());
+            player.getPackets().sendMovePlaceVerification(manuaverSlot, MoveType.NONE.getId());
+            player.getPackets().sendMovePlaceVerification(prevSlot, move.getId());
         }
     }
 
+    /**
+     * Gets the maneuver slot
+     *
+     * @return {@link #manuaverSlot}
+     */
     public int getManuaverSlot() {
         return manuaverSlot;
+    }
+
+    public int countAllShoots() {
+        int count = 0;
+        for (int slot = 0; slot < leftCannons.length; slot++) {
+            count += leftCannons[slot];
+        }
+        for (int slot = 0; slot < rightCannons.length; slot++) {
+            count += rightCannons[slot];
+        }
+
+        return count;
     }
 }

@@ -1,8 +1,7 @@
 package com.benberi.cadesim.server.model.move;
 
-import com.benberi.cadesim.server.model.Player;
-import com.benberi.cadesim.server.model.vessel.Vessel;
-import com.benberi.cadesim.server.model.vessel.VesselFace;
+import com.benberi.cadesim.server.model.player.Player;
+import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 
 public enum MoveType {
 

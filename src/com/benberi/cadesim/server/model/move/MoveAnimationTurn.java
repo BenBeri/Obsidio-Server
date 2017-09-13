@@ -1,6 +1,6 @@
 package com.benberi.cadesim.server.model.move;
 
-import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
+import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 
 public class MoveAnimationTurn {
 

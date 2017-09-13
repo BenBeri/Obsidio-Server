@@ -3,11 +3,8 @@ package com.benberi.cadesim.server.packet;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.IncomingPackets;
 import com.benberi.cadesim.server.codec.util.Packet;
-import com.benberi.cadesim.server.model.Player;
-import com.benberi.cadesim.server.packet.in.ManuaverSlotChanged;
-import com.benberi.cadesim.server.packet.in.PlayerLoginPacket;
-import com.benberi.cadesim.server.packet.in.PlayerPlaceCannonPacket;
-import com.benberi.cadesim.server.packet.in.PlayerPlaceMovePacket;
+import com.benberi.cadesim.server.model.player.Player;
+import com.benberi.cadesim.server.packet.in.*;
 import io.netty.channel.Channel;
 
 import java.util.*;
@@ -55,6 +52,8 @@ public class ServerPacketManager {
         executors.put(IncomingPackets.PLACE_MOVE, new PlayerPlaceMovePacket(context));
         executors.put(IncomingPackets.MANUAVER_SLOT_CHANGED, new ManuaverSlotChanged(context));
         executors.put(IncomingPackets.CANNON_PLACE, new PlayerPlaceCannonPacket(context));
+        executors.put(IncomingPackets.SEAL_TOGGLE, new SealTogglePacket(context));
+        executors.put(IncomingPackets.SET_SEAL_TARGET, new SetSealGenerationTargetPacket(context));
     }
 
     /**

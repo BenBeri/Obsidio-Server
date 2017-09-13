@@ -1,10 +1,8 @@
 package com.benberi.cadesim.server.packet.out.impl;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
-import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.codec.util.PacketLength;
-import com.benberi.cadesim.server.model.Player;
-import com.benberi.cadesim.server.model.vessel.VesselFace;
+import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 
 /**

@@ -2,7 +2,6 @@ package com.benberi.cadesim.server.packet.out.impl;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
-import com.benberi.cadesim.server.model.Player;
 import com.benberi.cadesim.server.model.move.MoveType;
 import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;

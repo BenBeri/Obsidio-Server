@@ -2,7 +2,7 @@ package com.benberi.cadesim.server.packet;
 
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
-import com.benberi.cadesim.server.model.Player;
+import com.benberi.cadesim.server.model.player.Player;
 
 public abstract class ServerPacketExecutor {
 

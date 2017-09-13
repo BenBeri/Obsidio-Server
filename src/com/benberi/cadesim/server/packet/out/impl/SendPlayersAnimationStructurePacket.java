@@ -2,10 +2,10 @@ package com.benberi.cadesim.server.packet.out.impl;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
-import com.benberi.cadesim.server.model.Player;
+import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
-import com.benberi.cadesim.server.model.vessel.VesselMovementAnimation;
+import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
 
 import java.util.List;

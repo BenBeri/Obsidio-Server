@@ -13,4 +13,5 @@ public class OutGoingPackets {
     public static final int SEND_ALL_VESSELS = 8;
     public static final int MOVE_BAR_UPDATE = 9;
     public static final int CANNON_PLACE = 10;
+    public static final int SET_SEAL_TARGET = 11;
 }

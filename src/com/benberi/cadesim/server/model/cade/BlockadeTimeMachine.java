@@ -2,7 +2,6 @@ package com.benberi.cadesim.server.model.cade;
 
 import com.benberi.cadesim.server.Constants;
 import com.benberi.cadesim.server.ServerContext;
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 public class BlockadeTimeMachine {
 
@@ -58,6 +57,13 @@ public class BlockadeTimeMachine {
 
     public void setTurnResetDelay(long delay) {
         this.turnResetDelay = delay;
+    }
+
+    /**
+     * @return Checks if there is a turn delay
+     */
+    public boolean hasTurnDelay() {
+        return turnResetDelay != -1;
     }
 
     /**
