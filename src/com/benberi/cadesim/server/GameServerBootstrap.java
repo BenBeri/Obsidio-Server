@@ -1,5 +1,7 @@
 package com.benberi.cadesim.server;
 
+import com.benberi.cadesim.server.config.Constants;
+import com.benberi.cadesim.server.config.ServerConfiguration;
 import com.benberi.cadesim.server.service.GameService;
 
 import java.util.concurrent.Executors;
@@ -8,7 +10,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
- * Bootstrap
+ * Obsidio game server bootstrap
+ *
  * @author Ben Beri <benberi545@gmail.com>
  *                  <https://github.com/benberi>
  */
@@ -16,7 +19,10 @@ public class GameServerBootstrap {
 
     private Logger logger = Logger.getLogger("Bootstrap");
 
-    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
+    /**
+     * The service executor
+     */
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2); // 2 threads, 1 for netty, 1 for game logic
 
     /**
      * Server's configuration
@@ -37,6 +43,10 @@ public class GameServerBootstrap {
         context = new ServerContext(cfg);
     }
 
+    /**
+     * Start the server
+     * @throws InterruptedException
+     */
     private void startServer() throws InterruptedException {
         start = System.currentTimeMillis();
 
@@ -47,7 +57,9 @@ public class GameServerBootstrap {
 
     }
 
-
+    /**
+     * Start the services
+     */
     public void startServices() {
 
         logger.info("Starting up the game service....");

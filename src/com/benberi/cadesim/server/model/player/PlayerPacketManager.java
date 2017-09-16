@@ -1,7 +1,7 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
-import com.benberi.cadesim.server.packet.out.impl.*;
+import com.benberi.cadesim.server.codec.packet.out.impl.*;
 
 import java.util.List;
 

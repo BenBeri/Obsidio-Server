@@ -1,8 +1,8 @@
 package com.benberi.cadesim.server.util;
 
-
-import javafx.geometry.Pos;
-
+/**
+ * 2D Position
+ */
 public class Position {
 
     /**
@@ -18,9 +18,14 @@ public class Position {
     public Position() {
     }
 
+    /**
+     * Create the instance with given position
+     *
+     * @param x The X
+     * @param y The Y
+     */
     public Position(int x, int y) {
-        this.x = x;
-        this.y = y;
+        set(x, y);
     }
 
     public int getX() {
@@ -31,17 +36,38 @@ public class Position {
         return this.y;
     }
 
-
+    /**
+     * Appends X
+     *
+     * @param toAdd The X to append
+     *
+     * @return  This position
+     */
     public Position addX(int toAdd) {
         this.x += toAdd;
         return this;
     }
 
+    /**
+     * Appends Y
+     *
+     * @param toAdd The Y to append
+     *
+     * @return  This position
+     */
     public Position addY(int toAdd) {
         this.y += toAdd;
         return this;
     }
 
+    /**
+     * Appends X and Y
+     *
+     * @param x The X to append
+     * @param y The Y to append
+     *
+     * @return This position
+     */
     public Position add(int x, int y) {
         addX(x);
         addY(y);

@@ -1,12 +1,11 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.model.collision.CollisionCalculator;
-import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
-import com.benberi.cadesim.server.model.move.MoveType;
-import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
-import com.benberi.cadesim.server.packet.out.impl.LoginResponsePacket;
-import com.benberi.cadesim.server.packet.out.impl.SendPlayersAnimationStructurePacket;
+import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
+import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
+import com.benberi.cadesim.server.model.player.move.MoveType;
+import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
+import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;

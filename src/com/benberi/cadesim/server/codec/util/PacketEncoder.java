@@ -1,10 +1,9 @@
 package com.benberi.cadesim.server.codec.util;
 
-import com.benberi.cadesim.server.Constants;
+import com.benberi.cadesim.server.config.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import sun.rmi.runtime.Log;
 
 import java.util.logging.Logger;
 

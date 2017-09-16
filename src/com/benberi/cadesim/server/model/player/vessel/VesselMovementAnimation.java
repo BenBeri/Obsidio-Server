@@ -1,6 +1,6 @@
 package com.benberi.cadesim.server.model.player.vessel;
 
-import com.benberi.cadesim.server.model.move.MoveType;
+import com.benberi.cadesim.server.model.player.move.MoveType;
 
 public enum VesselMovementAnimation {
     NO_ANIMATION(-1),

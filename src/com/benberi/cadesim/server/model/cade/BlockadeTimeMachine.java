@@ -1,6 +1,6 @@
 package com.benberi.cadesim.server.model.cade;
 
-import com.benberi.cadesim.server.Constants;
+import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.ServerContext;
 
 public class BlockadeTimeMachine {

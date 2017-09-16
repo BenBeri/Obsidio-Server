@@ -14,10 +14,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Rawr Server
+ * Obsidio game server for Blockade Simulator
  *
- * RawrServer is a small server ran by one thread to run small games
- * such as the blockade simulator for low-players games
+ * @author Ben Beri <benberi545@gmail.com> | Jony
  */
 public class CadeServer extends ServerBootstrap implements Runnable {
 
@@ -28,17 +27,18 @@ public class CadeServer extends ServerBootstrap implements Runnable {
     private Logger logger = Logger.getLogger("Server Main");
 
     /**
-     * The executor
+     * Server event loop worker
      */
     private EventLoopGroup worker = new NioEventLoopGroup(1);
-
-    private boolean loaded = false;
 
     /**
      * The server context
      */
     private ServerContext context;
 
+    /**
+     * The server bootstrap
+     */
     private GameServerBootstrap bootstrap;
 
     public CadeServer(ServerContext context, GameServerBootstrap bootstrap) {
@@ -48,8 +48,7 @@ public class CadeServer extends ServerBootstrap implements Runnable {
         group(worker);
         channel(NioServerSocketChannel.class);
         option(ChannelOption.SO_BACKLOG, 100);
-       // childOption(ChannelOption.TCP_NODELAY, true);
-
+        childOption(ChannelOption.TCP_NODELAY, true);
         childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -61,6 +60,9 @@ public class CadeServer extends ServerBootstrap implements Runnable {
         });
     }
 
+    /**
+     * On server startup
+     */
     public void run() {
         try {
             int port = context.getConfiguration().getPort();
@@ -79,9 +81,5 @@ public class CadeServer extends ServerBootstrap implements Runnable {
         } finally {
             worker.shutdownGracefully();
         }
-    }
-
-    public boolean isLoaded() {
-        return this.loaded;
     }
 }

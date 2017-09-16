@@ -1,6 +1,6 @@
 package com.benberi.cadesim.server.model.player.vessel;
 
-import com.benberi.cadesim.server.model.move.TurnMoveHandler;
+import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 
 /**
