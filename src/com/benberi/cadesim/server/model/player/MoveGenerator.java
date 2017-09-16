@@ -25,7 +25,14 @@ public class MoveGenerator {
     }
 
     private void updateMoveGeneration() {
-        double rate = player.getJobbersQuality().getMovesPerTurn() / Constants.TURN_TIME;
+        double movesPerTurn = player.getJobbersQuality().getMovesPerTurn();
+        double movesPerTurnAffectBilge = movesPerTurn * 1 - (((player.getVessel().getBilgePercentage() * 1.45) / 100) * movesPerTurn);
+        if (movesPerTurnAffectBilge == 0) {
+            movesPerTurnAffectBilge = player.getJobbersQuality().getFullBilgeMoveRate();
+        }
+
+        double rate = movesPerTurnAffectBilge / Constants.TURN_TIME;
+
         moveGenerationPercentage += rate;
         if (moveGenerationPercentage >= 1) {
             moveGenerationPercentage -= Math.floor(moveGenerationPercentage);

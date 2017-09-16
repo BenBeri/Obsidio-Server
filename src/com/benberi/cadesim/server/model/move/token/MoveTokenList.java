@@ -10,7 +10,7 @@ public class MoveTokenList extends TreeSet<MoveToken> {
 
     public MoveTokenList(MoveType moveType) {
         super(new MoveTokenComparator());
-        this.type = type;
+        this.type = moveType;
     }
 
     public MoveType getType() {

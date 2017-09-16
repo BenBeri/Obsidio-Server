@@ -8,6 +8,7 @@ public class MoveAnimationTurn {
     private VesselMovementAnimation subAnimation = VesselMovementAnimation.NO_ANIMATION; // phase 2
     private int leftShoots;
     private int rightShoots;
+    private boolean sunk;
 
     public VesselMovementAnimation getAnimation() {
         return animation;
@@ -41,4 +42,11 @@ public class MoveAnimationTurn {
         this.rightShoots = rightShoots;
     }
 
+    public boolean isSunk() {
+        return sunk;
+    }
+
+    public void setSunk(boolean sunk) {
+        this.sunk = sunk;
+    }
 }

@@ -5,7 +5,7 @@ public class Constants {
     /**
      * The port the cade sim will use
      */
-    public static final int PROTOCOL_DEFAULT_PORT = 4666;
+    public static final int PROTOCOL_DEFAULT_PORT = 80;
 
     /**
      * The delay of the main game service loop in milliseconds
@@ -15,17 +15,17 @@ public class Constants {
     /**
      * The main blockade time
      */
-    public static final int BLOCKADE_TIME = 27000; // sec*10
+    public static final int BLOCKADE_TIME = 9000; // sec*10
 
     /**
      * The time it takes for a turn to select moves
      */
-    public static final int TURN_TIME = 350; // sec*10
+    public static final int TURN_TIME = 250; // sec*10
 
     /**
      * If to debug packets or not
      */
-    public static final boolean DEBUG_PACKETS = true;
+    public static final boolean DEBUG_PACKETS = false;
 
     public static final int DEFAULT_VESSEL_TYPE = 0;
 

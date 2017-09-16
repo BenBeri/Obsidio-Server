@@ -47,6 +47,7 @@ public class SendPlayersAnimationStructurePacket extends OutgoingPacket {
                 writeByte(turn.getSubAnimation().getId());
                 writeByte(turn.getLeftShoots());
                 writeByte(turn.getRightShoots());
+                writeByte(turn.isSunk() ? 1 : 0);
             }
         }
 

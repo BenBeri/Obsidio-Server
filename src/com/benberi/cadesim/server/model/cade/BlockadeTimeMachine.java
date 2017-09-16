@@ -89,5 +89,6 @@ public class BlockadeTimeMachine {
         turnTime = Constants.TURN_TIME;
         turnResetDelay = -1;
         context.getPlayerManager().resetMoveBars();
+        context.getPlayerManager().resetSunkShips();
     }
 }

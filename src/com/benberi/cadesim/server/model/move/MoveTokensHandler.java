@@ -54,7 +54,7 @@ public class MoveTokensHandler {
     /**
      * If the token generation is automatic or not
      */
-    private boolean automatic;
+    private boolean automatic = true;
 
     /**
      * The owner vessel
@@ -118,6 +118,9 @@ public class MoveTokensHandler {
      */
     public void setAutomaticSealGeneration(boolean flag) {
         this.automatic = flag;
+        if (flag) {
+            updateAutoTargetSeal();
+        }
     }
 
     /**
@@ -294,34 +297,42 @@ public class MoveTokensHandler {
     }
 
         if (automatic) {
-            int left = countLeftMoves();
-            int right = countRightMoves();
-            int forward = countForwardMoves();
-
-            if (left == right && left == forward) {
-                switch (targetTokenGeneration) {
-                    case FORWARD:
-                        setTargetTokenGeneration(MoveType.LEFT, true);
-                        break;
-                    case LEFT:
-                        setTargetTokenGeneration(MoveType.RIGHT, true);
-                        break;
-                    case RIGHT:
-                        setTargetTokenGeneration(MoveType.FORWARD, true);
-                        break;
-                }
-            }
-            else {
-                List<MoveTokenList> list = new ArrayList<>();
-                list.add(leftTokens);
-                list.add(rightTokens);
-                list.add(forwardTokens);
-                list.sort(Comparator.comparingInt(TreeSet::size));
-
-                this.setTargetTokenGeneration(list.get(0).getType(), true);
-            }
-
+            updateAutoTargetSeal();
         }
+    }
+
+    public void updateAutoTargetSeal() {
+        int left = countLeftMoves();
+        int right = countRightMoves();
+        int forward = countForwardMoves();
+
+        if (left == right && left == forward || left + right + forward == 0) {
+            switch (targetTokenGeneration) {
+                case FORWARD:
+                    setTargetTokenGeneration(MoveType.LEFT, true);
+                    break;
+                case LEFT:
+                    setTargetTokenGeneration(MoveType.RIGHT, true);
+                    break;
+                case RIGHT:
+                    setTargetTokenGeneration(MoveType.FORWARD, true);
+                    break;
+            }
+        }
+        else {
+            List<MoveTokenList> list = new ArrayList<>();
+            list.add(leftTokens);
+            list.add(rightTokens);
+            list.add(forwardTokens);
+            list.sort(Comparator.comparingInt(TreeSet::size));
+
+            try {
+                this.setTargetTokenGeneration(list.get(0).getType(), true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public MoveType getTargetSeal() {
