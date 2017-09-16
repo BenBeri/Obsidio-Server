@@ -8,6 +8,7 @@ import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.packet.out.impl.LoginResponsePacket;
 import com.benberi.cadesim.server.packet.out.impl.SendPlayersAnimationStructurePacket;
 import com.benberi.cadesim.server.util.Direction;
+import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
@@ -74,90 +75,120 @@ public class PlayerManager {
      * Handles the turn
      */
     public void handleTurn() {
-        // Send tokens
 
-        int maxSlotsFilled = 0;
-        int maxShotsFilled = 0;
-        List<Player> registered = listRegisteredPlayers();
-
-        // Loop through 4 turns we want to execute
+        // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
-            for (Player p : registered) {
-                // If player is sunk, don't move anywhere even if moves placed
-                if (p.isSunk()) {
-                    continue;
-                }
 
-                // Process move, and set new position
-                MoveType move = p.getMoves().getMove(turn);
-                move.setNextPosition(p);
-                p.setFace(move.getNextFace(p.getFace()));
-            }
+            // Loop through phases in the turn
+             for (int phase = 0; phase < 2; phase++) {
 
-            // Handle shoots, and register animations per player in this turn
-            for (Player p : registered) {
-                // If this ship sunk, don't place any animations or shoots.
-                if (p.isSunk() && p.getSunkTurn() != turn) {
-                    continue;
-                }
+                 for (Player p : listRegisteredPlayers()) {
+                    MoveType move =  p.getMoves().getMove(turn);
+                    Position position = move.getNextPositionWithPhase(p, p.getFace(), phase);
 
-                // The move the player wants to perform
-                MoveType move = p.getMoves().getMove(turn);
-                // left shoots
-                int leftShoots = p.getMoves().getLeftCannons(turn);
-                // right shoots
-                int rightShoots = p.getMoves().getRightCannons(turn);
+                    List<Player> collisions = collision.getPlayersTryingToClaim(p, position, turn, phase);
+                    if (collisions.size() > 0) {
+                        for (Player pl : collisions) {
+                            pl.getMoves().setMove(turn, MoveType.NONE);
+                        }
+                        p.getMoves().setMove(turn, MoveType.NONE);
+                    }
+                 }
 
-                /*
-                 * Apply damage to players on the left/right side of this player's shoots
-                 */
-                damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
-                damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
-
-
-                /*
-                 * Register animations for this move in this turn, for the client
-                 */
-                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(turn);
-                // Sets the animation for this turn
-                turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
-                // sets shoots
-                turnAnimation.setLeftShoots(leftShoots);
-                turnAnimation.setRightShoots(rightShoots);
-
-                int count = p.getAnimationStructure().countFilledTurnSlots();
-                int countShoots = p.getAnimationStructure().countFilledShootSlots();
-
-                if (count > maxSlotsFilled) {
-                    maxSlotsFilled = count;
-                }
-
-                if (countShoots > maxShotsFilled) {
-                    maxShotsFilled = countShoots;
-                }
-            }
+                 for (Player p : listRegisteredPlayers()) {
+                     MoveType move =  p.getMoves().getMove(turn);
+                     Position position = move.getNextPositionWithPhase(p, p.getFace(), phase);
+                     p.set(position);
+                 }
+             }
         }
-
-
-        int sunkShips = 0;
-
-        for (int i = 0; i < 4; i++) {
-            for (Player p : registered) {
-                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
-                if (turn.isSunk()) {
-                    sunkShips++;
-                    break;
-                }
-            }
-        }
-
-        // Send packets to the players
-        for (Player p : registered) {
-            p.processAfterTurnUpdate();
-        }
-
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 1130) + (maxShotsFilled * 1800) + sunkShips * 3500);
     }
+
+//    public void handleTurn() {
+//        // Send tokens
+//
+//        int maxSlotsFilled = 0;
+//        int maxShotsFilled = 0;
+//        List<Player> registered = listRegisteredPlayers();
+//
+//        // Loop through 4 turns we want to execute
+//        for (int turn = 0; turn < 4; turn++) {
+//            for (Player p : registered) {
+//                // If player is sunk, don't move anywhere even if moves placed
+//                if (p.isSunk()) {
+//                    continue;
+//                }
+//
+//                // Process move, and set new position
+//                MoveType move = p.getMoves().getMove(turn);
+//                move.setNextPosition(p);
+//                p.setFace(move.getNextFace(p.getFace()));
+//            }
+//
+//            // Handle shoots, and register animations per player in this turn
+//            for (Player p : registered) {
+//                // If this ship sunk, don't place any animations or shoots.
+//                if (p.isSunk() && p.getSunkTurn() != turn) {
+//                    continue;
+//                }
+//
+//                // The move the player wants to perform
+//                MoveType move = p.getMoves().getMove(turn);
+//                // left shoots
+//                int leftShoots = p.getMoves().getLeftCannons(turn);
+//                // right shoots
+//                int rightShoots = p.getMoves().getRightCannons(turn);
+//
+//                /*
+//                 * Apply damage to players on the left/right side of this player's shoots
+//                 */
+//                damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
+//                damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
+//
+//
+//                /*
+//                 * Register animations for this move in this turn, for the client
+//                 */
+//                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(turn);
+//                // Sets the animation for this turn
+//                turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+//                // sets shoots
+//                turnAnimation.setLeftShoots(leftShoots);
+//                turnAnimation.setRightShoots(rightShoots);
+//
+//                int count = p.getAnimationStructure().countFilledTurnSlots();
+//                int countShoots = p.getAnimationStructure().countFilledShootSlots();
+//
+//                if (count > maxSlotsFilled) {
+//                    maxSlotsFilled = count;
+//                }
+//
+//                if (countShoots > maxShotsFilled) {
+//                    maxShotsFilled = countShoots;
+//                }
+//            }
+//        }
+//
+//
+//        int sunkShips = 0;
+//
+//        for (int i = 0; i < 4; i++) {
+//            for (Player p : registered) {
+//                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
+//                if (turn.isSunk()) {
+//                    sunkShips++;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        // Send packets to the players
+//        for (Player p : registered) {
+//            p.processAfterTurnUpdate();
+//        }
+//
+//        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 1130) + (maxShotsFilled * 1800) + sunkShips * 3500);
+//    }
 
 
     /**

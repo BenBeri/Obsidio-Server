@@ -1,9 +1,14 @@
 package com.benberi.cadesim.server.model.collision;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.model.move.MoveType;
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.PlayerManager;
 import com.benberi.cadesim.server.util.Direction;
+import com.benberi.cadesim.server.util.Position;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CollisionCalculator {
 
@@ -20,6 +25,25 @@ public class CollisionCalculator {
     public CollisionCalculator(ServerContext ctx, PlayerManager players) {
         this.context = ctx;
         this.players = players;
+    }
+
+
+    public List<Player> getPlayersTryingToClaim(Player player, Position target, int turn, int phase) {
+        List<Player> collided = new ArrayList<>();
+
+        for (Player p : players.listRegisteredPlayers()) {
+            if (p == player) {
+                continue;
+            }
+
+            MoveType move = p.getMoves().getMove(turn);
+            Position next = move.getNextPositionWithPhase(p, p.getFace(), phase);
+            if (next.equals(target)) {
+                collided.add(p);
+            }
+        }
+
+        return collided;
     }
 
     /**

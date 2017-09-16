@@ -9,12 +9,13 @@ import com.benberi.cadesim.server.model.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
 
 import java.util.logging.Logger;
 
 
-public class Player {
+public class Player extends Position {
 
 
     private Logger logger = Logger.getLogger("Player-Logger");
@@ -55,16 +56,6 @@ public class Player {
     private MoveAnimationStructure animation = new MoveAnimationStructure();
 
     private JobbersQuality jobbersQuality = JobbersQuality.ELITE;
-
-    /**
-     * X-axis position of the player
-     */
-    private int x;
-
-    /**
-     * Y-axis position of the player
-     */
-    private int y;
 
     /**
      * The face of the player (rotation id)
@@ -186,53 +177,6 @@ public class Player {
         return vessel;
     }
 
-    /**
-     * Gets the X-axis position of the player
-     *
-     * @return {@link #x}
-     */
-    public int getX() {
-        return x;
-    }
-
-    /**
-     * Gets the Y-axis position of the player
-     *
-     * @return {@link #y}
-     */
-    public int getY() {
-        return y;
-    }
-
-    /**
-     * Sets the X position of the player
-     *
-     * @param x The new X coordinate
-     */
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    /**
-     * Sets the Y position of the player
-     *
-     * @param y The new Y coordinate
-     */
-    public void setY(int y) {
-        this.y = y;
-    }
-
-
-    /**
-     * Sets the player position
-     *
-     * @param x The new player X coordinate
-     * @param y The new player Y coordinate
-     */
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
 
     /**
      * Gets the player face
@@ -259,7 +203,6 @@ public class Player {
      */
     public void register(String name) {
         this.name = name;
-        this.x = 3;
         this.isRegistered = true;
     }
 
@@ -454,8 +397,8 @@ public class Player {
         moves = new TurnMoveHandler(this);
         animation = new MoveAnimationStructure();
 
-        x = 0;
-        y = 0;
+        resetPosition();
+
         face = VesselFace.NORTH;
 
         for (Player p : context.getPlayerManager().listRegisteredPlayers()) {

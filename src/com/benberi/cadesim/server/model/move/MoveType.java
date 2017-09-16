@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model.move;
 
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
+import com.benberi.cadesim.server.util.Position;
 
 public enum MoveType {
 
@@ -53,56 +54,99 @@ public enum MoveType {
         return VesselFace.NORTH;
     }
 
-    public void setNextPosition(Player player) {
+    public Position getNextPositionWithPhase(Position position, VesselFace face, int phase) {
        switch (this) {
            case FORWARD:
-               switch (player.getFace()) {
-                   case NORTH:
-                       player.setPosition(player.getX(), player.getY() + 1);
-                       break;
-                   case SOUTH:
-                       player.setPosition(player.getX(), player.getY() - 1);
-                       break;
-                   case WEST:
-                       player.setPosition(player.getX() - 1, player.getY());
-                       break;
-                   case EAST:
-                       player.setPosition(player.getX() + 1, player.getY());
-                       break;
+               if (phase == 0) {
+                   switch (face) {
+                       case NORTH:
+                           return position.copy().addY(1);
+                       case SOUTH:
+                           return position.copy().addY(-1);
+                       case WEST:
+                           return position.copy().addX(-1);
+                       case EAST:
+                           return position.copy().addX(1);
+                   }
+                   break;
                }
-               break;
+               else {
+                   return position;
+               }
            case LEFT:
-               switch (player.getFace()) {
+               switch (face) {
                    case NORTH:
-                       player.setPosition(player.getX() - 1, player.getY() + 1);
+                       if (phase == 0) {
+                           return position.copy().addY(1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addX(-1);
+                       }
                        break;
                    case SOUTH:
-                       player.setPosition(player.getX() + 1, player.getY() - 1);
+                       if (phase == 0) {
+                           return position.copy().addY(-1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addX(+1);
+                       }
                        break;
                    case WEST:
-                       player.setPosition(player.getX() - 1, player.getY() - 1);
+                       if (phase == 0) {
+                           return position.copy().addX(-1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addY(-1);
+                       }
                        break;
                    case EAST:
-                       player.setPosition(player.getX() + 1, player.getY() + 1);
+                       if (phase == 0) {
+                           return position.copy().addX(1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addY(1);
+                       }
                        break;
                }
                break;
            case RIGHT:
-               switch (player.getFace()) {
+               switch (face) {
                    case NORTH:
-                       player.setPosition(player.getX() + 1, player.getY() + 1);
+                       if (phase == 0) {
+                           return position.copy().addY(1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addX(1);
+                       }
                        break;
                    case SOUTH:
-                       player.setPosition(player.getX() - 1, player.getY() - 1);
+                       if (phase == 0) {
+                           return position.copy().addY(-1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addX(-1);
+                       }
                        break;
                    case WEST:
-                       player.setPosition(player.getX() - 1, player.getY() + 1);
+                       if (phase == 0) {
+                           return position.copy().addX(-1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addY(1);
+                       }
                        break;
                    case EAST:
-                       player.setPosition(player.getX() + 1, player.getY() - 1);
+                       if (phase == 0) {
+                           return position.copy().addX(1);
+                       }
+                       else if (phase == 1) {
+                           return position.copy().addY(-1);
+                       }
                        break;
                }
                break;
        }
+
+       return position;
     }
 }
