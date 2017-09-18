@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.model.player.collision.PlayerCollisionStorage;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.player.move.MoveTokensHandler;
 import com.benberi.cadesim.server.model.player.move.MoveType;
@@ -76,9 +77,20 @@ public class Player extends Position {
      */
     private boolean isRegistered;
 
+    /**
+     * The last damage update
+     */
     private long lastDamageUpdate;
 
+    /**
+     * The turn the ship sunk at
+     */
     private int sunkTurn = -1;
+
+    /**
+     * The collision storage
+     */
+    private PlayerCollisionStorage collisionStorage;
 
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
@@ -87,6 +99,7 @@ public class Player extends Position {
         this.moveGenerator = new MoveGenerator(this);
         this.tokens = new MoveTokensHandler(this);
         this.moves = new TurnMoveHandler(this);
+        this.collisionStorage = new PlayerCollisionStorage(this);
     }
 
     /**
@@ -150,6 +163,15 @@ public class Player extends Position {
      */
     public JobbersQuality getJobbersQuality() {
         return jobbersQuality;
+    }
+
+    /**
+     * Gets the collision storage
+     *
+     * @return {@link #collisionStorage}
+     */
+    public PlayerCollisionStorage getCollisionStorage() {
+        return collisionStorage;
     }
 
     /**

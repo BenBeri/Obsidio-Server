@@ -53,6 +53,7 @@ public enum MoveType {
         return VesselFace.NORTH;
     }
 
+
     public Position getNextPositionWithPhase(Position position, VesselFace face, int phase) {
        switch (this) {
            case FORWARD:

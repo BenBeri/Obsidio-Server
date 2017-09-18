@@ -28,14 +28,13 @@ public class CollisionCalculator {
     }
 
 
-    public List<Player> getPlayersTryingToClaim(Player player, Position target, int turn, int phase) {
+    public List<Player> getPlayersTryingToClaim(Player pl, Position target, int turn, int phase) {
         List<Player> collided = new ArrayList<>();
 
         for (Player p : players.listRegisteredPlayers()) {
-            if (p == player) {
+            if (p == pl) {
                 continue;
             }
-
             MoveType move = p.getMoves().getMove(turn);
             Position next = move.getNextPositionWithPhase(p, p.getFace(), phase);
             if (next.equals(target)) {

@@ -10,9 +10,8 @@ public enum VesselMovementAnimation {
     MOVE_BACKWARD(3),
     MOVE_LEFT(4),
     MOVE_RIGHT(5),
-    TURN_LEFT_BUMP(6),
-    TURN_RIGHT_BUMP(7),
-    MOVE_FORWARD_BUMP(8);
+    BUMP_PHASE_1(6),
+    BUMP_PHASE_2(7);
 
     private int id;
 
@@ -34,13 +33,20 @@ public enum VesselMovementAnimation {
             case MOVE_LEFT:
             case MOVE_RIGHT:
                 return 500;
-            case MOVE_FORWARD_BUMP:
-            case TURN_LEFT_BUMP:
-            case TURN_RIGHT_BUMP:
-                return 250;
         }
 
         return 0;
+    }
+
+    public static VesselMovementAnimation getBumpForPhase(int phase) {
+        switch (phase) {
+            case 0:
+                return BUMP_PHASE_1;
+            case 1:
+                return BUMP_PHASE_2;
+        }
+
+        return null;
     }
 
     public static VesselMovementAnimation getIdForMoveType(MoveType type) {

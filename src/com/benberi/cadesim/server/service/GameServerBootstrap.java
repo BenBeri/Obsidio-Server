@@ -1,8 +1,9 @@
-package com.benberi.cadesim.server;
+package com.benberi.cadesim.server.service;
 
+import com.benberi.cadesim.server.CadeServer;
+import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.config.ServerConfiguration;
-import com.benberi.cadesim.server.service.GameService;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

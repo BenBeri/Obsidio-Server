@@ -2,13 +2,16 @@ package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
+import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.player.move.MoveType;
 import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
 import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
+import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
+import javafx.scene.shape.MoveTo;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -78,29 +81,71 @@ public class PlayerManager {
         // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
 
-            // Loop through phases in the turn
+            // Loop through phases in the turn (split turn into phases, e.g turn left is 2 phases, turn forward is one phase).
+            // So if stopped in phase 1, and its a turn left, it will basically stay in same position, if in phase 2, it will only
+            // move one step instead of 2 full steps.
              for (int phase = 0; phase < 2; phase++) {
 
+                 // Go through all players and check if their move causes a collision
                  for (Player p : listRegisteredPlayers()) {
+                     if (p.getCollisionStorage().isCollided(turn)) {
+                         continue;
+                     }
+
                     MoveType move =  p.getMoves().getMove(turn);
+
+                    // Gets the next position on the map for the given phase on the given move
                     Position position = move.getNextPositionWithPhase(p, p.getFace(), phase);
 
-                    List<Player> collisions = collision.getPlayersTryingToClaim(p, position, turn, phase);
-                    if (collisions.size() > 0) {
-                        for (Player pl : collisions) {
-                            pl.getMoves().setMove(turn, MoveType.NONE);
+                    if (!position.equals(p)) {
+                        // Check if tile is claimed
+                        Player claimed = getPlayerByPosition(position.getX(), position.getY());
+                        if (claimed != null) {
+                            if (claimed.getMoves().getMove(turn) == MoveType.NONE) {
+                                p.getCollisionStorage().setCollided(turn, phase);
+//                                MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
+//                                t.setMoveToken(move);
+//                                t.setAnimation(VesselMovementAnimation.getBumpForPhase(phase));
+                            } else {
+                                p.set(position);
+                            }
+                        } else {
+                            // List of players that collided with this player, while performing this move, in this phase
+                            List<Player> collisions = collision.getPlayersTryingToClaim(p, position, turn, phase);
+
+                            if (collisions.size() > 0) { // Collision has happened
+                                collisions.add(p);
+                                // Stop players from movement
+                                for (Player pl : collisions) {
+                                    pl.getCollisionStorage().setCollided(turn, phase);
+                                }
+                            } else {
+                                p.set(position);
+                            }
                         }
-                        p.getMoves().setMove(turn, MoveType.NONE);
                     }
                  }
-
-                 for (Player p : listRegisteredPlayers()) {
-                     MoveType move =  p.getMoves().getMove(turn);
-                     Position position = move.getNextPositionWithPhase(p, p.getFace(), phase);
-                     p.set(position);
-                 }
              }
+
+            for (Player p : listRegisteredPlayers()) {
+                MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
+                MoveType move = p.getMoves().getMove(turn);
+                p.setFace(move.getNextFace(p.getFace()));
+                t.setMoveToken(move);
+                if (p.getCollisionStorage().isCollided(turn)) {
+                    t.setAnimation(VesselMovementAnimation.getBumpForPhase(p.getCollisionStorage().getCollisionRerefence(turn).getPhase()));
+                }
+                else {
+                    t.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+                }
+            }
         }
+
+        for (Player p : listRegisteredPlayers()) {
+            p.processAfterTurnUpdate();
+        }
+
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + 5000);
     }
 
 //    public void handleTurn() {
