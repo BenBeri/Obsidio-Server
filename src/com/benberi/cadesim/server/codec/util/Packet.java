@@ -76,7 +76,6 @@ public class Packet {
 
     public void writeByteString(String s) {
         byte[] strData = s.getBytes();
-        System.out.println(strData.length);
         dataBuffer.writeByte(strData.length);
         dataBuffer.writeBytes(strData);
 }

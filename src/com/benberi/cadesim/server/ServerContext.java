@@ -1,10 +1,15 @@
 package com.benberi.cadesim.server;
 
+import com.benberi.cadesim.server.config.ServerConfiguration;
 import com.benberi.cadesim.server.model.player.PlayerManager;
 import com.benberi.cadesim.server.model.cade.BlockadeMap;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
-import com.benberi.cadesim.server.packet.ServerPacketManager;
+import com.benberi.cadesim.server.codec.packet.ServerPacketManager;
 
+/**
+ * The server context containing references to every massive part of the
+ * server model, domain and configuration
+ */
 public class ServerContext {
 
     /**

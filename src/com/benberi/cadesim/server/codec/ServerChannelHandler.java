@@ -2,7 +2,7 @@ package com.benberi.cadesim.server.codec;
 
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
-import com.benberi.cadesim.server.packet.IncomingPacket;
+import com.benberi.cadesim.server.codec.packet.IncomingPacket;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;

@@ -1,14 +1,18 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.model.collision.CollisionCalculator;
-import com.benberi.cadesim.server.model.move.MoveAnimationTurn;
-import com.benberi.cadesim.server.model.move.MoveType;
+import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
+import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
+import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
+import com.benberi.cadesim.server.model.player.move.MoveType;
+import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
+import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
+import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
-import com.benberi.cadesim.server.packet.out.impl.LoginResponsePacket;
-import com.benberi.cadesim.server.packet.out.impl.SendPlayersAnimationStructurePacket;
 import com.benberi.cadesim.server.util.Direction;
+import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
+import javafx.scene.shape.MoveTo;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -74,75 +78,98 @@ public class PlayerManager {
      * Handles the turn
      */
     public void handleTurn() {
-        // Send tokens
 
-        int maxSlotsFilled = 0;
-        int maxShotsFilled = 0;
-        List<Player> registered = listRegisteredPlayers();
-
-        // Loop through 4 turns we want to execute
+        System.out.println("=== Looping through all turns ===");
+        // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
-            for (Player p : registered) {
-                // If player is sunk, don't move anywhere even if moves placed
-                if (p.isSunk()) {
-                    continue;
-                }
+            System.out.println("Current turn loop: " + turn);
+            // Loop through phases in the turn (split turn into phases, e.g turn left is 2 phases, turn forward is one phase).
+            // So if stopped in phase 1, and its a turn left, it will basically stay in same position, if in phase 2, it will only
+            // move one step instead of 2 full steps.
+            for (int phase = 0; phase < 2; phase++) {
+                System.out.println("Current phase loop: " + phase);
 
-                // Process move, and set new position
+                 // Go through all players and check if their move causes a collision
+                 for (Player p : listRegisteredPlayers()) {
+                     if (p.getCollisionStorage().isCollided(turn) || p.isSunk()) {
+                         continue;
+                     }
+                     System.out.println("Updating collision for: " + p.getName());
+                     collision.checkCollision(p, turn, phase, true);
+                 }
+
+                 // Update ship bumps positions
+                 for (Player p : listRegisteredPlayers()) {
+                     if (p.getCollisionStorage().isBumped()) {
+                         p.set(p.getCollisionStorage().getBumpAnimation().getPositionForAnimation(p));
+                         p.getCollisionStorage().setBumped(false);
+                     }
+
+                     p.getCollisionStorage().setPositionChanged(false);
+                 }
+             }
+
+            // Save animations for the turn and other handlings
+            for (Player p : listRegisteredPlayers()) {
+                MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
                 MoveType move = p.getMoves().getMove(turn);
-                move.setNextPosition(p);
                 p.setFace(move.getNextFace(p.getFace()));
-            }
-
-            // Handle shoots, and register animations per player in this turn
-            for (Player p : registered) {
-                // If this ship sunk, don't place any animations or shoots.
-                if (p.isSunk() && p.getSunkTurn() != turn) {
-                    continue;
+                t.setMoveToken(move);
+                if (p.getCollisionStorage().isCollided(turn)) {
+                    t.setAnimation(VesselMovementAnimation.getBumpForPhase(p.getCollisionStorage().getCollisionRerefence(turn).getPhase()));
+                }
+                else {
+                    if (p.getCollisionStorage().getBumpAnimation() != VesselMovementAnimation.NO_ANIMATION) {
+                        t.setAnimation(p.getCollisionStorage().getBumpAnimation());
+                    }
+                    else {
+                        t.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+                    }
                 }
 
-                // The move the player wants to perform
-                MoveType move = p.getMoves().getMove(turn);
+                p.getCollisionStorage().clear();
+
                 // left shoots
                 int leftShoots = p.getMoves().getLeftCannons(turn);
                 // right shoots
                 int rightShoots = p.getMoves().getRightCannons(turn);
 
-                /*
-                 * Apply damage to players on the left/right side of this player's shoots
-                 */
+                // Apply damages
                 damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
                 damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
 
+                t.setLeftShoots(leftShoots);
+                t.setRightShoots(rightShoots);
+            }
+        }
 
-                /*
-                 * Register animations for this move in this turn, for the client
-                 */
-                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(turn);
-                // Sets the animation for this turn
-                turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
-                // sets shoots
-                turnAnimation.setLeftShoots(leftShoots);
-                turnAnimation.setRightShoots(rightShoots);
+        for (Player p : listRegisteredPlayers()) {
+            p.processAfterTurnUpdate();
+        }
 
-                int count = p.getAnimationStructure().countFilledTurnSlots();
-                int countShoots = p.getAnimationStructure().countFilledShootSlots();
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + countTurnExecutionTime());
+    }
+
+    private int countTurnExecutionTime() {
+        int maxSlotsFilled = 0;
+        int maxShootsFilled = 0;
+        int sunkShips = 0;
+        for (Player p : listRegisteredPlayers()) {
+            MoveAnimationStructure structure = p.getAnimationStructure();
+
+                int count = structure.countFilledTurnSlots();
+                int countShoots = structure.countFilledShootSlots();
 
                 if (count > maxSlotsFilled) {
                     maxSlotsFilled = count;
                 }
-
-                if (countShoots > maxShotsFilled) {
-                    maxShotsFilled = countShoots;
+                if (countShoots > maxShootsFilled) {
+                    maxShootsFilled = countShoots;
                 }
-            }
         }
 
-
-        int sunkShips = 0;
-
         for (int i = 0; i < 4; i++) {
-            for (Player p : registered) {
+            for (Player p : listRegisteredPlayers()) {
                 MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
                 if (turn.isSunk()) {
                     sunkShips++;
@@ -151,13 +178,94 @@ public class PlayerManager {
             }
         }
 
-        // Send packets to the players
-        for (Player p : registered) {
-            p.processAfterTurnUpdate();
-        }
-
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 1130) + (maxShotsFilled * 1800) + sunkShips * 3500);
+        return (maxSlotsFilled * 1130) + (maxShootsFilled * 1800) + sunkShips * 3000;
     }
+
+//    public void handleTurn() {
+//        // Send tokens
+//
+//        int maxSlotsFilled = 0;
+//        int maxShotsFilled = 0;
+//        List<Player> registered = listRegisteredPlayers();
+//
+//        // Loop through 4 turns we want to execute
+//        for (int turn = 0; turn < 4; turn++) {
+//            for (Player p : registered) {
+//                // If player is sunk, don't move anywhere even if moves placed
+//                if (p.isSunk()) {
+//                    continue;
+//                }
+//
+//                // Process move, and set new position
+//                MoveType move = p.getMoves().getMove(turn);
+//                move.setNextPosition(p);
+//                p.setFace(move.getNextFace(p.getFace()));
+//            }
+//
+//            // Handle shoots, and register animations per player in this turn
+//            for (Player p : registered) {
+//                // If this ship sunk, don't place any animations or shoots.
+//                if (p.isSunk() && p.getSunkTurn() != turn) {
+//                    continue;
+//                }
+//
+//                // The move the player wants to perform
+//                MoveType move = p.getMoves().getMove(turn);
+//                // left shoots
+//                int leftShoots = p.getMoves().getLeftCannons(turn);
+//                // right shoots
+//                int rightShoots = p.getMoves().getRightCannons(turn);
+//
+//                /*
+//                 * Apply damage to players on the left/right side of this player's shoots
+//                 */
+//                damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
+//                damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
+//
+//
+//                /*
+//                 * Register animations for this move in this turn, for the client
+//                 */
+//                MoveAnimationTurn turnAnimation = p.getAnimationStructure().getTurn(turn);
+//                // Sets the animation for this turn
+//                turnAnimation.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+//                // sets shoots
+//                turnAnimation.setLeftShoots(leftShoots);
+//                turnAnimation.setRightShoots(rightShoots);
+//
+//                int count = p.getAnimationStructure().countFilledTurnSlots();
+//                int countShoots = p.getAnimationStructure().countFilledShootSlots();
+//
+//                if (count > maxSlotsFilled) {
+//                    maxSlotsFilled = count;
+//                }
+//
+//                if (countShoots > maxShotsFilled) {
+//                    maxShotsFilled = countShoots;
+//                }
+//            }
+//        }
+//
+//
+//        int sunkShips = 0;
+//
+//        for (int i = 0; i < 4; i++) {
+//            for (Player p : registered) {
+//                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
+//                if (turn.isSunk()) {
+//                    sunkShips++;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        // Send packets to the players
+//        for (Player p : registered) {
+//            p.processAfterTurnUpdate();
+//        }
+//
+//        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + (maxSlotsFilled * 1130) + (maxShotsFilled * 1800) + sunkShips * 3500);
+//    }
 
 
     /**

@@ -1,20 +1,25 @@
 package com.benberi.cadesim.server.model.player;
 
-import com.benberi.cadesim.server.Constants;
+import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.model.move.MoveAnimationStructure;
-import com.benberi.cadesim.server.model.move.MoveTokensHandler;
-import com.benberi.cadesim.server.model.move.MoveType;
-import com.benberi.cadesim.server.model.move.TurnMoveHandler;
+import com.benberi.cadesim.server.model.player.collision.PlayerCollisionStorage;
+import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
+import com.benberi.cadesim.server.model.player.move.MoveTokensHandler;
+import com.benberi.cadesim.server.model.player.move.MoveType;
+import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
+import com.benberi.cadesim.server.model.player.domain.JobbersQuality;
+import com.benberi.cadesim.server.model.player.domain.MoveGenerator;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
-import com.benberi.cadesim.server.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.util.Position;
+import com.benberi.cadesim.server.util.RandomUtils;
 import io.netty.channel.Channel;
 
 import java.util.logging.Logger;
 
 
-public class Player {
+public class Player extends Position {
 
 
     private Logger logger = Logger.getLogger("Player-Logger");
@@ -57,16 +62,6 @@ public class Player {
     private JobbersQuality jobbersQuality = JobbersQuality.ELITE;
 
     /**
-     * X-axis position of the player
-     */
-    private int x;
-
-    /**
-     * Y-axis position of the player
-     */
-    private int y;
-
-    /**
      * The face of the player (rotation id)
      */
     private VesselFace face = VesselFace.EAST;
@@ -83,9 +78,20 @@ public class Player {
      */
     private boolean isRegistered;
 
+    /**
+     * The last damage update
+     */
     private long lastDamageUpdate;
 
+    /**
+     * The turn the ship sunk at
+     */
     private int sunkTurn = -1;
+
+    /**
+     * The collision storage
+     */
+    private PlayerCollisionStorage collisionStorage;
 
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
@@ -94,6 +100,7 @@ public class Player {
         this.moveGenerator = new MoveGenerator(this);
         this.tokens = new MoveTokensHandler(this);
         this.moves = new TurnMoveHandler(this);
+        this.collisionStorage = new PlayerCollisionStorage(this);
     }
 
     /**
@@ -160,6 +167,15 @@ public class Player {
     }
 
     /**
+     * Gets the collision storage
+     *
+     * @return {@link #collisionStorage}
+     */
+    public PlayerCollisionStorage getCollisionStorage() {
+        return collisionStorage;
+    }
+
+    /**
      * Gets the server context
      *
      * @return {@link #context}
@@ -186,53 +202,6 @@ public class Player {
         return vessel;
     }
 
-    /**
-     * Gets the X-axis position of the player
-     *
-     * @return {@link #x}
-     */
-    public int getX() {
-        return x;
-    }
-
-    /**
-     * Gets the Y-axis position of the player
-     *
-     * @return {@link #y}
-     */
-    public int getY() {
-        return y;
-    }
-
-    /**
-     * Sets the X position of the player
-     *
-     * @param x The new X coordinate
-     */
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    /**
-     * Sets the Y position of the player
-     *
-     * @param y The new Y coordinate
-     */
-    public void setY(int y) {
-        this.y = y;
-    }
-
-
-    /**
-     * Sets the player position
-     *
-     * @param x The new player X coordinate
-     * @param y The new player Y coordinate
-     */
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
 
     /**
      * Gets the player face
@@ -259,8 +228,9 @@ public class Player {
      */
     public void register(String name) {
         this.name = name;
-        this.x = 3;
         this.isRegistered = true;
+        this.setX(RandomUtils.randInt(0, 10));
+        this.setY(RandomUtils.randInt(0, 3));
     }
 
     /**
@@ -454,8 +424,8 @@ public class Player {
         moves = new TurnMoveHandler(this);
         animation = new MoveAnimationStructure();
 
-        x = 0;
-        y = 0;
+        resetPosition();
+
         face = VesselFace.NORTH;
 
         for (Player p : context.getPlayerManager().listRegisteredPlayers()) {

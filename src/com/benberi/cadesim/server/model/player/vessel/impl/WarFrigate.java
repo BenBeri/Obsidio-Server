@@ -12,6 +12,11 @@ public class WarFrigate extends Vessel {
     }
 
     @Override
+    public int getSize() {
+        return 3;
+    }
+
+    @Override
     public int getMaxCannons() {
         return 24;
     }
@@ -29,6 +34,11 @@ public class WarFrigate extends Vessel {
     @Override
     public double getMaxDamage() {
         return 33.32;
+    }
+
+    @Override
+    public double getRamDamage() {
+        return 2;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.benberi.cadesim.server.model.player.vessel;
 
-import com.benberi.cadesim.server.model.move.TurnMoveHandler;
+import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 
 /**
@@ -93,6 +93,8 @@ public abstract class Vessel {
      */
     public abstract double getMaxDamage();
 
+    public abstract double getRamDamage();
+
     /**
      * @return The cannon type
      */
@@ -102,6 +104,12 @@ public abstract class Vessel {
      * The ID of the vessel type
      */
     public abstract int getID();
+
+    /**
+     * Gets the size of the ship
+     * @return  The size
+     */
+    public abstract int getSize();
 
     /**
      * Creates a vessel by given vessel type
