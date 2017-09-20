@@ -13,6 +13,7 @@ import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.util.Position;
+import com.benberi.cadesim.server.util.RandomUtils;
 import io.netty.channel.Channel;
 
 import java.util.logging.Logger;
@@ -228,6 +229,8 @@ public class Player extends Position {
     public void register(String name) {
         this.name = name;
         this.isRegistered = true;
+        this.setX(RandomUtils.randInt(0, 10));
+        this.setY(RandomUtils.randInt(0, 3));
     }
 
     /**

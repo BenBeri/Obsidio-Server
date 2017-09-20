@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.model.player.collision;
 
 import com.benberi.cadesim.server.model.player.Player;
+import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 
 public class PlayerCollisionStorage {
 
@@ -14,6 +15,12 @@ public class PlayerCollisionStorage {
     public PlayerCollisionStorage(Player player) {
         this.player = player;
     }
+
+    private VesselMovementAnimation bumpAnimation = VesselMovementAnimation.NO_ANIMATION;
+
+    private boolean isBumped;
+
+    private boolean positionChanged;
 
     /**
      * Stores a collision
@@ -47,5 +54,38 @@ public class PlayerCollisionStorage {
      */
     public void clear() {
         this.collisions = new PlayerCollisionReference[4];
+        this.bumpAnimation = VesselMovementAnimation.NO_ANIMATION;
+        positionChanged = false;
+    }
+
+    public VesselMovementAnimation getBumpAnimation() {
+        return bumpAnimation;
+    }
+
+    public void setBumpAnimation(VesselMovementAnimation bumpAnimation) {
+        this.bumpAnimation = bumpAnimation;
+        if (bumpAnimation != VesselMovementAnimation.NO_ANIMATION) {
+            setBumped(true);
+        }
+        else {
+            setBumped(false);
+        }
+    }
+
+    public boolean isBumped() {
+       // return this.bumpAnimation != VesselMovementAnimation.NO_ANIMATION;
+        return isBumped;
+    }
+
+    public boolean isPositionChanged() {
+        return positionChanged;
+    }
+
+    public void setPositionChanged(boolean positionChanged) {
+        this.positionChanged = positionChanged;
+    }
+
+    public void setBumped(boolean bool) {
+        this.isBumped = bool;
     }
 }

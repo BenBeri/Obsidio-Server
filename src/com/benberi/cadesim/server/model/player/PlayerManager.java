@@ -7,6 +7,7 @@ import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.player.move.MoveType;
 import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
 import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
+import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
@@ -78,55 +79,37 @@ public class PlayerManager {
      */
     public void handleTurn() {
 
+        System.out.println("=== Looping through all turns ===");
         // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
-
+            System.out.println("Current turn loop: " + turn);
             // Loop through phases in the turn (split turn into phases, e.g turn left is 2 phases, turn forward is one phase).
             // So if stopped in phase 1, and its a turn left, it will basically stay in same position, if in phase 2, it will only
             // move one step instead of 2 full steps.
-             for (int phase = 0; phase < 2; phase++) {
+            for (int phase = 0; phase < 2; phase++) {
+                System.out.println("Current phase loop: " + phase);
 
                  // Go through all players and check if their move causes a collision
                  for (Player p : listRegisteredPlayers()) {
-                     if (p.getCollisionStorage().isCollided(turn)) {
+                     if (p.getCollisionStorage().isCollided(turn) || p.isSunk()) {
                          continue;
                      }
+                     System.out.println("Updating collision for: " + p.getName());
+                     collision.checkCollision(p, turn, phase, true);
+                 }
 
-                    MoveType move =  p.getMoves().getMove(turn);
+                 // Update ship bumps positions
+                 for (Player p : listRegisteredPlayers()) {
+                     if (p.getCollisionStorage().isBumped()) {
+                         p.set(p.getCollisionStorage().getBumpAnimation().getPositionForAnimation(p));
+                         p.getCollisionStorage().setBumped(false);
+                     }
 
-                    // Gets the next position on the map for the given phase on the given move
-                    Position position = move.getNextPositionWithPhase(p, p.getFace(), phase);
-
-                    if (!position.equals(p)) {
-                        // Check if tile is claimed
-                        Player claimed = getPlayerByPosition(position.getX(), position.getY());
-                        if (claimed != null) {
-                            if (claimed.getMoves().getMove(turn) == MoveType.NONE) {
-                                p.getCollisionStorage().setCollided(turn, phase);
-//                                MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
-//                                t.setMoveToken(move);
-//                                t.setAnimation(VesselMovementAnimation.getBumpForPhase(phase));
-                            } else {
-                                p.set(position);
-                            }
-                        } else {
-                            // List of players that collided with this player, while performing this move, in this phase
-                            List<Player> collisions = collision.getPlayersTryingToClaim(p, position, turn, phase);
-
-                            if (collisions.size() > 0) { // Collision has happened
-                                collisions.add(p);
-                                // Stop players from movement
-                                for (Player pl : collisions) {
-                                    pl.getCollisionStorage().setCollided(turn, phase);
-                                }
-                            } else {
-                                p.set(position);
-                            }
-                        }
-                    }
+                     p.getCollisionStorage().setPositionChanged(false);
                  }
              }
 
+            // Save animations for the turn and other handlings
             for (Player p : listRegisteredPlayers()) {
                 MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
                 MoveType move = p.getMoves().getMove(turn);
@@ -136,8 +119,27 @@ public class PlayerManager {
                     t.setAnimation(VesselMovementAnimation.getBumpForPhase(p.getCollisionStorage().getCollisionRerefence(turn).getPhase()));
                 }
                 else {
-                    t.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+                    if (p.getCollisionStorage().getBumpAnimation() != VesselMovementAnimation.NO_ANIMATION) {
+                        t.setAnimation(p.getCollisionStorage().getBumpAnimation());
+                    }
+                    else {
+                        t.setAnimation(VesselMovementAnimation.getIdForMoveType(move));
+                    }
                 }
+
+                p.getCollisionStorage().clear();
+
+                // left shoots
+                int leftShoots = p.getMoves().getLeftCannons(turn);
+                // right shoots
+                int rightShoots = p.getMoves().getRightCannons(turn);
+
+                // Apply damages
+                damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
+                damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
+
+                t.setLeftShoots(leftShoots);
+                t.setRightShoots(rightShoots);
             }
         }
 
@@ -145,7 +147,38 @@ public class PlayerManager {
             p.processAfterTurnUpdate();
         }
 
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + 5000);
+        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + countTurnExecutionTime());
+    }
+
+    private int countTurnExecutionTime() {
+        int maxSlotsFilled = 0;
+        int maxShootsFilled = 0;
+        int sunkShips = 0;
+        for (Player p : listRegisteredPlayers()) {
+            MoveAnimationStructure structure = p.getAnimationStructure();
+
+                int count = structure.countFilledTurnSlots();
+                int countShoots = structure.countFilledShootSlots();
+
+                if (count > maxSlotsFilled) {
+                    maxSlotsFilled = count;
+                }
+                if (countShoots > maxShootsFilled) {
+                    maxShootsFilled = countShoots;
+                }
+        }
+
+        for (int i = 0; i < 4; i++) {
+            for (Player p : listRegisteredPlayers()) {
+                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
+                if (turn.isSunk()) {
+                    sunkShips++;
+                    break;
+                }
+            }
+        }
+
+        return (maxSlotsFilled * 1130) + (maxShootsFilled * 1800) + sunkShips * 3000;
     }
 
 //    public void handleTurn() {
