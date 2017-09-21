@@ -75,41 +75,52 @@ public class PlayerManager {
     }
 
     /**
-     * Handles the turn
+     * Handles and executes all turns
      */
-    public void handleTurn() {
+    public void handleTurns() {
 
-        System.out.println("=== Looping through all turns ===");
         // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
-            System.out.println("Current turn loop: " + turn);
+
+            /*
+             * Phase 1 handling
+             */
+
             // Loop through phases in the turn (split turn into phases, e.g turn left is 2 phases, turn forward is one phase).
             // So if stopped in phase 1, and its a turn left, it will basically stay in same position, if in phase 2, it will only
             // move one step instead of 2 full steps.
             for (int phase = 0; phase < 2; phase++) {
-                System.out.println("Current phase loop: " + phase);
 
                  // Go through all players and check if their move causes a collision
                  for (Player p : listRegisteredPlayers()) {
+
+                     // If a player is already collided in this step or is sunk, we don't want him to move
+                     // anywhere, so we skip this iteration
                      if (p.getCollisionStorage().isCollided(turn) || p.isSunk()) {
                          continue;
                      }
-                     System.out.println("Updating collision for: " + p.getName());
+
+                     // Checks collision for the player, according to his current step #phase index and turn
                      collision.checkCollision(p, turn, phase, true);
                  }
 
-                 // Update ship bumps positions
+                 // There we update the bumps toggles, if a bump was toggled, we need to save it to the animation storage for this
+                 // current turn, and un-toggle it from the collision storage. We separate bump toggles from the main player loop above
+                 // Because we have to make sure that bumps been calculated for every one before moving to the next phase
                  for (Player p : listRegisteredPlayers()) {
                      if (p.getCollisionStorage().isBumped()) {
                          p.set(p.getCollisionStorage().getBumpAnimation().getPositionForAnimation(p));
                          p.getCollisionStorage().setBumped(false);
                      }
 
+                     // Toggle last position change save off because we made sure that it was set in the main loop of players
                      p.getCollisionStorage().setPositionChanged(false);
                  }
              }
 
-            // Save animations for the turn and other handlings
+
+            // There we save the animations of all bumps, collision and moves of this turn, and clearing the collision storage
+            // And what-ever. We also handle shoots there and calculate the turn time
             for (Player p : listRegisteredPlayers()) {
                 MoveAnimationTurn t = p.getAnimationStructure().getTurn(turn);
                 MoveType move = p.getMoves().getMove(turn);
@@ -127,6 +138,7 @@ public class PlayerManager {
                     }
                 }
 
+                // Clear the collision storage toggles and such
                 p.getCollisionStorage().clear();
 
                 // left shoots
@@ -134,38 +146,63 @@ public class PlayerManager {
                 // right shoots
                 int rightShoots = p.getMoves().getRightCannons(turn);
 
-                // Apply damages
+                // Apply cannon damages if they collided with anyone
                 damagePlayersAtDirection(leftShoots, p, Direction.LEFT, turn);
                 damagePlayersAtDirection(rightShoots, p, Direction.RIGHT, turn);
 
+                // Set cannon animations
                 t.setLeftShoots(leftShoots);
                 t.setRightShoots(rightShoots);
             }
+
+            /*
+            * Phase 2 handling
+            */
+
+            for(Player player : listRegisteredPlayers()) {
+                if (context.getMap().isActionTile(player.getX(), player.getY())) {
+                    Position next = context.getMap().getNextActionTilePosition(player);
+                    if (collision.checkActionCollision(player, next)) {
+
+                    }
+                }
+            }
+
+
         }
 
+        // Process some after-turns stuff like updating damage interfaces, and such
         for (Player p : listRegisteredPlayers()) {
             p.processAfterTurnUpdate();
         }
 
+        // Set the turn delay, and calculate the approximate execution time of the turn
         context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + countTurnExecutionTime());
     }
 
     private int countTurnExecutionTime() {
-        int maxSlotsFilled = 0;
-        int maxShootsFilled = 0;
+        int slotsFilled = 0;
+        int shootsFilled = 0;
         int sunkShips = 0;
-        for (Player p : listRegisteredPlayers()) {
-            MoveAnimationStructure structure = p.getAnimationStructure();
 
-                int count = structure.countFilledTurnSlots();
-                int countShoots = structure.countFilledShootSlots();
+        for (int i = 0; i < 4; i++) {
+            for (Player p : listRegisteredPlayers()) {
+                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
+                if (turn.getAnimation() != VesselMovementAnimation.NO_ANIMATION) {
+                    slotsFilled++;
+                    break;
+                }
+            }
+        }
 
-                if (count > maxSlotsFilled) {
-                    maxSlotsFilled = count;
+        for (int i = 0; i < 4; i++) {
+            for (Player p : listRegisteredPlayers()) {
+                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
+                if (turn.getLeftShoots() > 0 || turn.getRightShoots() > 0) {
+                    shootsFilled++;
+                    break;
                 }
-                if (countShoots > maxShootsFilled) {
-                    maxShootsFilled = countShoots;
-                }
+            }
         }
 
         for (int i = 0; i < 4; i++) {
@@ -178,10 +215,19 @@ public class PlayerManager {
             }
         }
 
-        return (maxSlotsFilled * 1130) + (maxShootsFilled * 1800) + sunkShips * 3000;
+        int sinkTime = sunkShips * 6300;
+        int slotTime = 1350 * slotsFilled;
+        int shootsTime = 1650 * shootsFilled;
+
+        sinkTime -= shootsTime;
+        if (sinkTime < 0) {
+            sinkTime = 0;
+        }
+
+        return sinkTime + slotTime + shootsTime;
     }
 
-//    public void handleTurn() {
+//    public void handleTurns() {
 //        // Send tokens
 //
 //        int maxSlotsFilled = 0;
@@ -349,7 +395,15 @@ public class PlayerManager {
      * @param channel   The channel that got de-registered
      */
     public void deRegisterPlayer(Channel channel) {
-        boolean removed = players.removeIf(player -> player.equals(channel));
+        Player player = getPlayerByChannel(channel);
+        if (player != null) {
+            for (Player p : listRegisteredPlayers()) {
+                if (p != player) {
+                    p.getPackets().sendRemovePlayer(player);
+                }
+            }
+        }
+        boolean removed = players.removeIf(pl -> pl.equals(channel));
         if (removed) {
             logger.info("Channel deregistered: " + channel.remoteAddress());
         }
@@ -466,6 +520,12 @@ public class PlayerManager {
             if (p.isSunk()) {
                 p.giveLife();
             }
+        }
+    }
+
+    public void sendPositions() {
+        for (Player p : listRegisteredPlayers()) {
+            p.getPackets().sendPositions();
         }
     }
 }

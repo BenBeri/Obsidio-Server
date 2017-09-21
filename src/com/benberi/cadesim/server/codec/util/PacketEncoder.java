@@ -41,5 +41,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
         }
 
         buffer.writeBytes(packet.getBuffer());
+
+        packet.getBuffer().release();
     }
 }

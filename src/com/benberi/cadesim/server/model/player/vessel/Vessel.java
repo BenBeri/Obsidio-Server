@@ -35,14 +35,14 @@ public abstract class Vessel {
      */
     public void appendDamage(double damage) {
         this.damage += damage;
-        if (damage > getMaxDamage()) {
+        if (this.damage > getMaxDamage()) {
             this.damage = getMaxDamage();
         }
     }
 
     public void appendBilge(double bilge) {
         this.bilge += bilge;
-        if (bilge > 100) {
+        if (this.bilge > 100) {
             this.bilge = 100;
         }
     }

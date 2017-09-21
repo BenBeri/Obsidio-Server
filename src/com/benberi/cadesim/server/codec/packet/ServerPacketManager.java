@@ -41,6 +41,7 @@ public class ServerPacketManager {
         while(!packetQueue.isEmpty()) {
             IncomingPacket packet = packetQueue.poll();
             process(packet.getChannel(), packet.getPacket());
+            packet.getPacket().getBuffer().release();
         }
     }
 

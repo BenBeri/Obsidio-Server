@@ -170,4 +170,18 @@ public class PlayerPacketManager {
 
         player.sendPacket(packet);
     }
+
+    public void sendPositions() {
+        SendPlayerPositions packet = new SendPlayerPositions();
+        packet.setPlayers(player.getContext().getPlayerManager().listRegisteredPlayers());
+
+        player.sendPacket(packet);
+    }
+
+    public void sendRemovePlayer(Player p) {
+        RemovePlayerShipPacket packet = new RemovePlayerShipPacket();
+        packet.setName(p.getName());
+
+        player.sendPacket(packet);
+    }
 }
