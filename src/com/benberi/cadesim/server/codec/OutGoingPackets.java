@@ -15,4 +15,6 @@ public class OutGoingPackets {
     public static final int CANNON_PLACE = 10;
     public static final int SET_SEAL_TARGET = 11;
     public static final int PLAYER_SUNK = 12;
+    public static final int SEND_POSITIONS = 13;
+    public static final int REMOVE_SHIP = 14;
 }

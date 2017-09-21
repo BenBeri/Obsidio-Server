@@ -12,6 +12,8 @@ public class PlayerCollisionStorage {
 
     private PlayerCollisionReference[] collisions = new PlayerCollisionReference[4];
 
+    private boolean actionMoveCollided;
+
     public PlayerCollisionStorage(Player player) {
         this.player = player;
     }
@@ -21,6 +23,14 @@ public class PlayerCollisionStorage {
     private boolean isBumped;
 
     private boolean positionChanged;
+
+    public boolean isActionMoveCollided() {
+        return actionMoveCollided;
+    }
+
+    public void setActionMoveCollided(boolean actionMoveCollided) {
+        this.actionMoveCollided = actionMoveCollided;
+    }
 
     /**
      * Stores a collision

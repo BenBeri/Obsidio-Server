@@ -101,6 +101,8 @@ public class Player extends Position {
         this.tokens = new MoveTokensHandler(this);
         this.moves = new TurnMoveHandler(this);
         this.collisionStorage = new PlayerCollisionStorage(this);
+
+        set(-1, -1);
     }
 
     /**
@@ -229,8 +231,14 @@ public class Player extends Position {
     public void register(String name) {
         this.name = name;
         this.isRegistered = true;
-        this.setX(RandomUtils.randInt(0, 10));
-        this.setY(RandomUtils.randInt(0, 3));
+
+        int x = 0;
+        int y = 0;
+        while(context.getPlayerManager().getPlayerByPosition(x, y) != null) {
+            x++;
+        }
+        setFace(VesselFace.NORTH);
+        set(x, y);
     }
 
     /**

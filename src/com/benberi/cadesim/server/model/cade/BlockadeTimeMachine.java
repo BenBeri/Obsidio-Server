@@ -39,7 +39,7 @@ public class BlockadeTimeMachine {
         if (turnTime == 0) {
             if (turnResetDelay == -1) {
                 try {
-                    context.getPlayerManager().handleTurn();
+                    context.getPlayerManager().handleTurns();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -90,5 +90,6 @@ public class BlockadeTimeMachine {
         turnResetDelay = -1;
         context.getPlayerManager().resetMoveBars();
         context.getPlayerManager().resetSunkShips();
+        context.getPlayerManager().sendPositions();
     }
 }
