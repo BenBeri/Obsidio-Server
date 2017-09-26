@@ -65,6 +65,7 @@ public class PlayerCollisionStorage {
     public void clear() {
         this.collisions = new PlayerCollisionReference[4];
         this.bumpAnimation = VesselMovementAnimation.NO_ANIMATION;
+        this.actionMoveCollided = false;
         positionChanged = false;
     }
 

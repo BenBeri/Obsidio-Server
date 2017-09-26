@@ -1,8 +1,11 @@
 package com.benberi.cadesim.server.model.player.vessel;
 
+import com.benberi.cadesim.server.model.cade.map.BlockadeMap;
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.move.MoveType;
 import com.benberi.cadesim.server.util.Position;
+
+import static com.benberi.cadesim.server.model.cade.map.BlockadeMap.*;
 
 public enum VesselMovementAnimation {
     NO_ANIMATION(-1),
@@ -13,12 +16,31 @@ public enum VesselMovementAnimation {
     MOVE_LEFT(4),
     MOVE_RIGHT(5),
     BUMP_PHASE_1(6),
-    BUMP_PHASE_2(7);
+    BUMP_PHASE_2(7),
+
+    MOVE_NORTH(8),
+    MOVE_SOUTH(9),
+    MOVE_WEST(10),
+    MOVE_EAST(11),
+
+    BUMP_NORTH(12),
+    BUMP_SOUTH(13),
+    BUMP_WEST(14),
+    BUMP_EAST(15),
+
+    WP_SE(16),
+    WP_SW(17),
+    WP_NW(18),
+    WP_NE(19);
 
     private int id;
 
     VesselMovementAnimation(int id) {
         this.id = id;
+    }
+
+    public boolean isWhirlpool() {
+        return id >= 16;
     }
 
     public int getId() {
@@ -173,5 +195,41 @@ public enum VesselMovementAnimation {
         }
 
         return player;
+    }
+
+    public static VesselMovementAnimation getBumpAnimationForAction(int tile) {
+        switch (tile) {
+            case WIND_NORTH:
+                return BUMP_NORTH;
+            case WIND_SOUTH:
+                return BUMP_SOUTH;
+            case WIND_WEST:
+                return BUMP_WEST;
+            case WIND_EAST:
+                return BUMP_EAST;
+        }
+        return BUMP_NORTH;
+    }
+
+    public static VesselMovementAnimation getSubAnimation(int tile) {
+        switch (tile) {
+            case WIND_NORTH:
+                return MOVE_NORTH;
+            case WIND_SOUTH:
+                return MOVE_SOUTH;
+            case WIND_WEST:
+                return MOVE_WEST;
+            case WIND_EAST:
+                return MOVE_EAST;
+            case BlockadeMap.WP_NE:
+                return WP_NE;
+            case BlockadeMap.WP_NW:
+                return WP_NW;
+            case BlockadeMap.WP_SW:
+                return WP_SW;
+            case BlockadeMap.WP_SE:
+                return WP_SE;
+        }
+        return MOVE_NORTH;
     }
 }

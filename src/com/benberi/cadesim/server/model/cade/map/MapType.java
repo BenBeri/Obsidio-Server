@@ -17,7 +17,8 @@ public enum MapType {
     public int[][] load() {
         int[][] map = new int[BlockadeMap.MAP_WIDTH][BlockadeMap.MAP_HEIGHT];
 
-        File file = new File(CadeServer.class.getResource("resources/maps/default.txt").getPath());
+       // File file = new File(CadeServer.class.getResource("resources/maps/default.txt").getPath());
+        File file = new File("maps/default.txt");
 
         int x = 0;
         int y = 0;
@@ -44,8 +45,6 @@ public enum MapType {
 
         for (int i = 0; i < map.length; i++) {
             for (int j = map[i].length - 1; j > -1; j--) {
-                System.out.println(j);
-                System.out.println(x1 + " " + y1);
                 finalMap[x1][y1] = map[i][j];
                 y1++;
             }

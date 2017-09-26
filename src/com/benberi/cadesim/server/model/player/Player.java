@@ -15,6 +15,7 @@ import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.util.Position;
 import com.benberi.cadesim.server.util.RandomUtils;
 import io.netty.channel.Channel;
+import javafx.geometry.Pos;
 
 import java.util.logging.Logger;
 
@@ -42,7 +43,7 @@ public class Player extends Position {
     /**
      * Player's vessel
      */
-    private Vessel vessel = Vessel.createVesselByType(Constants.DEFAULT_VESSEL_TYPE);
+    private Vessel vessel;
 
     /**
      * The turn move handler
@@ -88,14 +89,19 @@ public class Player extends Position {
      */
     private int sunkTurn = -1;
 
+    private boolean outOfSafe = false;
+
     /**
      * The collision storage
      */
     private PlayerCollisionStorage collisionStorage;
 
+    private boolean needsRespawn;
+
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
         this.context = ctx;
+        this.vessel = Vessel.createVesselByType(this, Constants.DEFAULT_VESSEL_TYPE);
         this.packets = new PlayerPacketManager(this);
         this.moveGenerator = new MoveGenerator(this);
         this.tokens = new MoveTokensHandler(this);
@@ -139,6 +145,17 @@ public class Player extends Position {
         moveGenerator.update();
     }
 
+    @Override
+    public Position set(Position pos) {
+        if (outOfSafe && context.getMap().isSafe(pos)) {
+            needsRespawn = true;
+        }
+        else if (!outOfSafe && !context.getMap().isSafe(pos)) {
+            this.outOfSafe = true;
+        }
+        return super.set(pos);
+    }
+
     /**
      * Sends a packet
      *
@@ -166,6 +183,22 @@ public class Player extends Position {
      */
     public JobbersQuality getJobbersQuality() {
         return jobbersQuality;
+    }
+
+    /**
+     * Checks if hes out of safe
+     * @return  The out of safe state
+     */
+    public boolean isOutOfSafe() {
+        return outOfSafe;
+    }
+
+    /**
+     * Sets out of safe zone state
+     * @param flag  The state to set
+     */
+    public void setOutOfSafe(boolean flag) {
+        this.outOfSafe = flag;
     }
 
     /**
@@ -231,7 +264,13 @@ public class Player extends Position {
     public void register(String name) {
         this.name = name;
         this.isRegistered = true;
+        respawn();
+    }
 
+    /**
+     * Respawns the player
+     */
+    public void respawn() {
         int x = 0;
         int y = 0;
         while(context.getPlayerManager().getPlayerByPosition(x, y) != null) {
@@ -239,6 +278,25 @@ public class Player extends Position {
         }
         setFace(VesselFace.NORTH);
         set(x, y);
+        setNeedsRespawn(false);
+
+        vessel.resetDamageAndBilge();
+    }
+
+    /**
+     * Sets need respawn flag
+     * @param flag  The flag to set
+     */
+    public void setNeedsRespawn(boolean flag) {
+        this.needsRespawn = flag;
+    }
+
+    /**
+     * Checks if needs respawn
+     * @return  If needs respawn
+     */
+    public boolean isNeedsRespawn() {
+        return needsRespawn;
     }
 
     /**
@@ -389,6 +447,10 @@ public class Player extends Position {
 
         packets.sendTokens();
         context.getPlayerManager().sendMoveBar(this);
+    }
+
+    public boolean isInSafe() {
+        return context.getMap().isSafe(this);
     }
 
     /**

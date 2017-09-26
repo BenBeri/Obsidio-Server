@@ -91,5 +91,5 @@ public class BlockadeTimeMachine {
         context.getPlayerManager().resetMoveBars();
         context.getPlayerManager().resetSunkShips();
         context.getPlayerManager().sendPositions();
-    }
+}
 }

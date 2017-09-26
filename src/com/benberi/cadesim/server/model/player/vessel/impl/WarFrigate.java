@@ -1,10 +1,15 @@
 package com.benberi.cadesim.server.model.player.vessel.impl;
 
 
+import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.vessel.CannonType;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 
 public class WarFrigate extends Vessel {
+
+    public WarFrigate(Player p) {
+        super(p);
+    }
 
     @Override
     public int getID() {

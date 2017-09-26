@@ -20,7 +20,7 @@ public class Constants {
     /**
      * The time it takes for a turn to select moves
      */
-    public static final int TURN_TIME = 180; // sec*10
+    public static final int TURN_TIME = 150; // sec*10
 
     /**
      * If to debug packets or not
