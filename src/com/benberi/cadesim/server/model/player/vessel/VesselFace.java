@@ -21,6 +21,21 @@ public enum VesselFace {
         return this.directionId;
     }
 
+    public VesselFace getNext() {
+        switch (this) {
+            case NORTH:
+                return EAST;
+            case EAST:
+                return SOUTH;
+            case SOUTH:
+                return WEST;
+            case WEST:
+                return NORTH;
+        }
+
+        return NORTH;
+    }
+
     public static VesselFace forId(int id) {
         for(VesselFace face : values()) {
             if (face.getDirectionId() == id) {

@@ -1,5 +1,6 @@
 package com.benberi.cadesim.server.model.player.vessel;
 
+import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 
@@ -7,6 +8,8 @@ import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
  * Abstraction of vessel
  */
 public abstract class Vessel {
+
+    private Player player;
 
     /**
      * The damage of the vessel
@@ -28,12 +31,19 @@ public abstract class Vessel {
      */
     private TurnMoveHandler moves;
 
+    public Vessel(Player p) {
+        this.player = p;
+    }
+
     /**
      * Appends damage
      *
      * @param damage    The damage amount to append
      */
     public void appendDamage(double damage) {
+        if (player.isInSafe()) {
+            return;
+        }
         this.damage += damage;
         if (this.damage > getMaxDamage()) {
             this.damage = getMaxDamage();
@@ -116,11 +126,11 @@ public abstract class Vessel {
      * @param type  The vessel type
      * @return The created vessel
      */
-    public static Vessel createVesselByType(int type) {
+    public static Vessel createVesselByType(Player p, int type) {
         switch (type) {
             default:
             case 0:
-                return new WarFrigate();
+                return new WarFrigate(p);
         }
     }
 
