@@ -240,12 +240,13 @@ public class PlayerManager {
             for (Player p : listRegisteredPlayers()) {
                 MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
                 if (turn.isSunk()) {
-                    sunkShips += 4500;
+                    sunkShips += 5000;
                     break;
                 }
             }
         }
 
+        sunkShips -= (slotsFilled + slotsSubAnimations + shootsFilled);
         return sunkShips + slotsFilled + slotsSubAnimations + shootsFilled;
     }
 
