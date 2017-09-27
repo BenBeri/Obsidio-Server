@@ -279,7 +279,7 @@ public class Player extends Position {
         setFace(VesselFace.NORTH);
         set(x, y);
         setNeedsRespawn(false);
-
+        outOfSafe = false;
         vessel.resetDamageAndBilge();
     }
 
@@ -502,6 +502,7 @@ public class Player extends Position {
             p.packets.sendRespawn(this);
         }
 
+        outOfSafe = false;
         packets.sendDamage();
         packets.sendTokens();
     }
