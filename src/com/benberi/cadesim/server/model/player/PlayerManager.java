@@ -1,24 +1,21 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
+import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
-import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
+import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.player.move.MoveType;
-import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
-import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
-import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
-import javafx.scene.shape.MoveTo;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerManager {
@@ -36,6 +33,11 @@ public class PlayerManager {
     private Queue<PlayerLoginRequest> queuedLoginRequests = new LinkedList<>();
 
     /**
+     * Logout requests
+     */
+    private Queue<Player> queuedLogoutRequests = new LinkedList<>();
+
+    /**
      * The server context
      */
     private ServerContext context;
@@ -45,6 +47,9 @@ public class PlayerManager {
      */
     private CollisionCalculator collision;
 
+    /**
+     * The last time time packet was sent
+     */
     private long lastTimeSend;
 
     public PlayerManager(ServerContext context) {
@@ -59,8 +64,31 @@ public class PlayerManager {
 
         // Send time ~ every second
         if (System.currentTimeMillis() - lastTimeSend >= 1000) {
-            sendTime();
             lastTimeSend = System.currentTimeMillis();
+
+            if (context.getTimeMachine().hasLock()) {
+                boolean failed = false;
+                for (Player p : listRegisteredPlayers()) {
+                    System.out.println("Here 2");
+                    if (!p.isTurnFinished()) {
+                        if (p.getTurnFinishWaitingTicks() > Constants.TURN_FINISH_TIMEOUT) {
+                            p.getChannel().disconnect();
+                        }
+                        else {
+                            p.updateTurnFinishWaitingTicks();
+                            failed = true;
+                        }
+                    }
+                }
+
+                if (!failed) {
+                    context.getTimeMachine().renewTurn();
+                    sendAfterTurn();
+                    context.getTimeMachine().setLock(false);
+                }
+            }
+
+            sendTime();
         }
 
         // Update players (for stuff like damage fixing, bilge fixing and move token generation)
@@ -69,8 +97,9 @@ public class PlayerManager {
         }
 
         // Handle login requests
-        if (!context.getTimeMachine().hasTurnDelay()) {
+        if (!context.getTimeMachine().hasLock()) {
             handlePlayerLoginRequests();
+            handleLogoutRequests();
         }
     }
 
@@ -191,8 +220,7 @@ public class PlayerManager {
             p.processAfterTurnUpdate();
         }
 
-        // Set the turn delay, and calculate the approximate execution time of the turn
-        context.getTimeMachine().setTurnResetDelay(System.currentTimeMillis() + countTurnExecutionTime());
+        context.getTimeMachine().setLock(true);
     }
 
     private int countTurnExecutionTime() {
@@ -337,18 +365,8 @@ public class PlayerManager {
     public void deRegisterPlayer(Channel channel) {
         Player player = getPlayerByChannel(channel);
         if (player != null) {
-            for (Player p : listRegisteredPlayers()) {
-                if (p != player) {
-                    p.getPackets().sendRemovePlayer(player);
-                }
-            }
-        }
-        boolean removed = players.removeIf(pl -> pl.equals(channel));
-        if (removed) {
-            logger.info("Channel deregistered: " + channel.remoteAddress());
-        }
-        else {
-            logger.log(Level.WARNING, "A channel de-registered but could not find the player instance: " + channel.remoteAddress());
+            player.setTurnFinished(true);
+            queuedLogoutRequests.add(player);
         }
     }
 
@@ -443,6 +461,23 @@ public class PlayerManager {
     }
 
     /**
+     * Handles logouts
+     */
+    private void handleLogoutRequests() {
+        while(!queuedLogoutRequests.isEmpty()) {
+            Player player = queuedLogoutRequests.poll();
+
+            for (Player p : listRegisteredPlayers()) {
+                if (p != player) {
+                    p.getPackets().sendRemovePlayer(player);
+                }
+            }
+
+            players.remove(player);
+        }
+    }
+
+    /**
      * Sends and updates the time of the game, turn for all players
      */
     private void sendTime() {
@@ -460,19 +495,31 @@ public class PlayerManager {
             if (p.isSunk()) {
                 p.giveLife();
             }
+
+            sendMoveBar(p);
+            p.getAnimationStructure().reset();
         }
     }
 
-    public void sendPositions() {
+    public void sendAfterTurn() {
 
         for (Player p : listRegisteredPlayers()) {
             if (p.isNeedsRespawn()) {
                 p.respawn();
             }
+
+            p.getAnimationStructure().reset();
+            p.setTurnFinished(false);
+            p.resetWaitingTicks();
         }
 
         for (Player p : listRegisteredPlayers()) {
             p.getPackets().sendPositions();
+
+            if (p.isSunk()) {
+                p.giveLife();
+            }
+            sendMoveBar(p);
         }
     }
 

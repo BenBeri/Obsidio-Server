@@ -55,6 +55,7 @@ public class ServerPacketManager {
         executors.put(IncomingPackets.CANNON_PLACE, new PlayerPlaceCannonPacket(context));
         executors.put(IncomingPackets.SEAL_TOGGLE, new SealTogglePacket(context));
         executors.put(IncomingPackets.SET_SEAL_TARGET, new SetSealGenerationTargetPacket(context));
+        executors.put(IncomingPackets.TURN_FINISH_NOTIFICATION, new TurnFinishNotification(context));
     }
 
     /**

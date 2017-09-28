@@ -1,21 +1,19 @@
 package com.benberi.cadesim.server.model.player;
 
-import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.model.player.collision.PlayerCollisionStorage;
+import com.benberi.cadesim.server.model.player.domain.JobbersQuality;
+import com.benberi.cadesim.server.model.player.domain.MoveGenerator;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationStructure;
 import com.benberi.cadesim.server.model.player.move.MoveTokensHandler;
 import com.benberi.cadesim.server.model.player.move.MoveType;
 import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
-import com.benberi.cadesim.server.model.player.domain.JobbersQuality;
-import com.benberi.cadesim.server.model.player.domain.MoveGenerator;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
-import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.util.Position;
-import com.benberi.cadesim.server.util.RandomUtils;
 import io.netty.channel.Channel;
-import javafx.geometry.Pos;
 
 import java.util.logging.Logger;
 
@@ -96,7 +94,20 @@ public class Player extends Position {
      */
     private PlayerCollisionStorage collisionStorage;
 
+    /**
+     * If the player needs a respawn
+     */
     private boolean needsRespawn;
+
+    /**
+     * Mark turn animation finished client-sided notification
+     */
+    private boolean turnFinished;
+
+    /**
+     * The waiting time for animation to finish
+     */
+    private int turnFinishWaitingTicks;
 
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
@@ -512,5 +523,25 @@ public class Player extends Position {
         outOfSafe = false;
         packets.sendDamage();
         packets.sendTokens();
+    }
+
+    public int getTurnFinishWaitingTicks() {
+        return turnFinishWaitingTicks;
+    }
+
+    public void updateTurnFinishWaitingTicks() {
+        this.turnFinishWaitingTicks++;
+    }
+
+    public boolean isTurnFinished() {
+        return turnFinished;
+    }
+
+    public void setTurnFinished(boolean turnFinished) {
+        this.turnFinished = turnFinished;
+    }
+
+    public void resetWaitingTicks() {
+        this.turnFinishWaitingTicks = 0;
     }
 }

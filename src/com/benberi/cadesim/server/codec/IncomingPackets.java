@@ -8,4 +8,5 @@ public class IncomingPackets {
     public static final int CANNON_PLACE = 3;
     public static final int SEAL_TOGGLE = 4;
     public static final int SET_SEAL_TARGET = 5;
+    public static final int TURN_FINISH_NOTIFICATION = 6;
 }

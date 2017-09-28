@@ -26,6 +26,8 @@ public class BlockadeTimeMachine {
 
     private long turnResetDelay = -1;
 
+    public boolean lock;
+
     /**
      * The main tick of blockade time machine
      */
@@ -37,7 +39,7 @@ public class BlockadeTimeMachine {
         gameTime--; // Tick blockade time
 
         if (turnTime == 0) {
-            if (turnResetDelay == -1) {
+            if (!lock) {
                 try {
                     context.getPlayerManager().handleTurns();
                 }
@@ -45,15 +47,15 @@ public class BlockadeTimeMachine {
                     e.printStackTrace();
                 }
             }
-            else if (System.currentTimeMillis() >= turnResetDelay) {
-                renewTurn();
-            }
             return;
         }
 
         turnTime--; // Tick turn time
     }
 
+    public void setLock(boolean lock) {
+        this.lock = lock;
+    }
 
     public void setTurnResetDelay(long delay) {
         this.turnResetDelay = delay;
@@ -62,8 +64,8 @@ public class BlockadeTimeMachine {
     /**
      * @return Checks if there is a turn delay
      */
-    public boolean hasTurnDelay() {
-        return turnResetDelay != -1;
+    public boolean hasLock() {
+        return lock;
     }
 
     /**
@@ -85,11 +87,9 @@ public class BlockadeTimeMachine {
     /**
      * Renewals the turn time
      */
-    private void renewTurn() {
+    public void renewTurn() {
         turnTime = Constants.TURN_TIME;
         turnResetDelay = -1;
-        context.getPlayerManager().resetMoveBars();
-        context.getPlayerManager().resetSunkShips();
-        context.getPlayerManager().sendPositions();
-}
+        setLock(false);
+    }
 }

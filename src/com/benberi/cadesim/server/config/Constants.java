@@ -31,4 +31,5 @@ public class Constants {
 
     public static final double BILGE_INCREASE_RATE_PER_TICK = 0.1;
     public static final int TOKEN_LIFE = 4; // turns
+    public static final int TURN_FINISH_TIMEOUT = 30;
 }
