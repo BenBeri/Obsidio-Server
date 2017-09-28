@@ -147,12 +147,18 @@ public class Player extends Position {
 
     @Override
     public Position set(Position pos) {
-        if (outOfSafe && context.getMap().isSafe(pos)) {
-            needsRespawn = true;
+        System.out.println(this.name + " Set position: " + pos.getX() + " " + pos.getY() + " safe: " + context.getMap().isSafe(pos));
+
+        if (!needsRespawn) {
+            if (!outOfSafe && !context.getMap().isSafe(pos)) {
+                this.outOfSafe = true;
+            }
+
+            if (outOfSafe && context.getMap().isSafe(pos)) {
+                needsRespawn = true;
+            }
         }
-        else if (!outOfSafe && !context.getMap().isSafe(pos)) {
-            this.outOfSafe = true;
-        }
+
         return super.set(pos);
     }
 
@@ -271,6 +277,7 @@ public class Player extends Position {
      * Respawns the player
      */
     public void respawn() {
+        System.out.println("respawn for: " + this.name);
         int x = 0;
         int y = 0;
         while(context.getPlayerManager().getPlayerByPosition(x, y) != null) {

@@ -205,7 +205,7 @@ public class PlayerManager {
             for (Player p : listRegisteredPlayers()) {
                 MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
                 if (turn.getAnimation() != VesselMovementAnimation.NO_ANIMATION) {
-                    slotsFilled += 1350;
+                    slotsFilled += 2000;
                     break;
                 }
             }
@@ -247,6 +247,9 @@ public class PlayerManager {
         }
 
         sunkShips -= (slotsFilled + slotsSubAnimations + shootsFilled);
+        if (sunkShips <= 0) {
+            sunkShips = 0;
+        }
         return sunkShips + slotsFilled + slotsSubAnimations + shootsFilled;
     }
 
@@ -461,10 +464,14 @@ public class PlayerManager {
     }
 
     public void sendPositions() {
+
         for (Player p : listRegisteredPlayers()) {
             if (p.isNeedsRespawn()) {
                 p.respawn();
             }
+        }
+
+        for (Player p : listRegisteredPlayers()) {
             p.getPackets().sendPositions();
         }
     }
