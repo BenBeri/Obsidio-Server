@@ -292,6 +292,8 @@ public class Player extends Position {
         }
         setFace(VesselFace.NORTH);
         set(x, y);
+
+        set(0, 6);
         setNeedsRespawn(false);
         outOfSafe = false;
         vessel.resetDamageAndBilge();

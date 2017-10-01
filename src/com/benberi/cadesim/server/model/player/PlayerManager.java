@@ -11,7 +11,6 @@ import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
@@ -163,27 +162,50 @@ public class PlayerManager {
             * Phase 2 handling
             */
 
-            for(Player player : listRegisteredPlayers()) {
-                if (player.getCollisionStorage().isBumped()) {
-                    continue;
-                }
-                int tile = context.getMap().getTile(player.getX(), player.getY());
-                if (context.getMap().isActionTile(player.getX(), player.getY())) {
-                    Position next = context.getMap().getNextActionTilePosition(player);
-                    if (context.getMap().isWhirlpool(tile)) {
-                        player.setFace(context.getMap().getNextActionTileFace(player.getFace()));
+            for (int phase = 0; phase < 2; phase++) {
+
+                for (Player player : listRegisteredPlayers()) {
+
+                    if (player.getCollisionStorage().isBumped()) {
+                        continue;
                     }
-                    if (!collision.checkActionCollision(player, next, turn)) {
-                        player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(tile));
-                    }
-                    else {
-                        player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getBumpAnimationForAction(tile));
+
+                    int tile = player.getCollisionStorage().isOnAction() ? player.getCollisionStorage().getActionTile()
+                            : context.getMap().getTile(player.getX(), player.getY());
+
+                    if (player.getCollisionStorage().isOnAction() || context.getMap().isActionTile(player.getX(), player.getY())) {
+                        if (phase == 0) {
+                            player.getCollisionStorage().setOnAction(tile);
+                        }
+                        Position next = context.getMap().getNextActionTilePosition(tile, player, phase);
+                        System.out.println(next.getX() + " " + next.getY());
+                        if (context.getMap().isWhirlpool(tile)) {
+                            player.setFace(context.getMap().getNextActionTileFace(player.getFace()));
+                        }
+                        collision.checkActionCollision(player, next, turn, phase);
+//                        if (!collision.checkActionCollision(player, next, turn, phase)) {
+//                            player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(tile));
+//                        } else {
+//                            player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getBumpAnimationForAction(tile));
+//                        }
                     }
                 }
             }
 
             for (Player p : listRegisteredPlayers()) {
+
+                if (p.getCollisionStorage().isOnAction()) {
+                    System.out.println(p.getCollisionStorage().getActionTile());
+                    int tile = p.getCollisionStorage().getActionTile();
+                    if (p.getCollisionStorage().isCollided(turn)) {
+                        p.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getBumpAnimationForAction(tile));
+                    } else {
+                        p.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(tile));
+                    }
+                }
+
                 p.getCollisionStorage().clear();
+                p.getCollisionStorage().setOnAction(-1);
                 p.getCollisionStorage().setBumped(false);
 
                 // left shoots

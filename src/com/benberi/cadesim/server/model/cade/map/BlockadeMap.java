@@ -1,11 +1,8 @@
 package com.benberi.cadesim.server.model.cade.map;
 
 import com.benberi.cadesim.server.ServerContext;
-import com.benberi.cadesim.server.model.player.Player;
-import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.util.Position;
-import com.sun.security.ntlm.Server;
 
 public class BlockadeMap {
 
@@ -89,7 +86,15 @@ public class BlockadeMap {
         return this.map[x][y];
     }
 
-    public Position getNextActionTilePosition(Position pos) {
+    public Position getNextActionTilePosition(int tile, Position pos, int phase) {
+        if (tile == -1) {
+            tile = map[pos.getX()][pos.getY()];
+        }
+        // No phase 2 (2 because 0 and 1) for winds
+        if (tile >= 3 && tile <= 6 && phase == 1) {
+            return pos;
+        }
+
         switch (this.map[pos.getX()][pos.getY()]) {
             case WIND_NORTH:
                 return pos.copy().addY(1);
@@ -99,14 +104,35 @@ public class BlockadeMap {
                 return pos.copy().addX(-1);
             case WIND_EAST:
                 return pos.copy().addX(1);
+
             case WP_NE:
-                return pos.copy().addX(-1).addY(-1);
+                switch (phase) {
+                    case 0:
+                        return pos.copy().addY(-1);
+                    case 1:
+                        return pos.copy().addX(-1);
+                }
             case WP_NW:
-                return pos.copy().addX(1).addY(-1);
+                switch (phase) {
+                    case 0:
+                        return pos.copy().addX(1);
+                    case 1:
+                        return pos.copy().addY(-1);
+                }
             case WP_SE:
-                return pos.copy().addX(-1).addY(1);
+                switch (phase) {
+                    case 0:
+                        return pos.copy().addX(-1);
+                    case 1:
+                        return pos.copy().addY(1);
+                }
             case WP_SW:
-                return pos.copy().addX(1).addY(1);
+                switch (phase) {
+                    case 0:
+                        return pos.copy().addY(1);
+                    case 1:
+                        return pos.copy().addX(1);
+                }
         }
 
         return pos;

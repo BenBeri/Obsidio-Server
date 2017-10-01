@@ -24,6 +24,9 @@ public class PlayerCollisionStorage {
 
     private boolean positionChanged;
 
+    private int actionTile = -1;
+
+
     public boolean isActionMoveCollided() {
         return actionMoveCollided;
     }
@@ -39,6 +42,18 @@ public class PlayerCollisionStorage {
      */
     public void setCollided(int turn, int phase) {
         this.collisions[turn] = new PlayerCollisionReference(player, phase);
+    }
+
+    public boolean isOnAction() {
+        return actionTile != -1;
+    }
+
+    public void setOnAction(int tile) {
+        this.actionTile = tile;
+    }
+
+    public int getActionTile() {
+        return  actionTile;
     }
 
     /**
