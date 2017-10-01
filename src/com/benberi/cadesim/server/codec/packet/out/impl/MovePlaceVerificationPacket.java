@@ -4,6 +4,9 @@ import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
 import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 
+/**
+ * @deprecated
+ */
 public class MovePlaceVerificationPacket extends OutgoingPacket {
 
     private int slot;

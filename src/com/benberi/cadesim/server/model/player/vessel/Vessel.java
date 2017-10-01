@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model.player.vessel;
 
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
+import com.benberi.cadesim.server.model.player.vessel.impl.WarBrig;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 
 /**
@@ -129,9 +130,20 @@ public abstract class Vessel {
     public static Vessel createVesselByType(Player p, int type) {
         switch (type) {
             default:
-            case 0:
+            case 2:
+                return new WarBrig(p);
+            case 3:
                 return new WarFrigate(p);
         }
+    }
+
+    public static boolean vesselExists(int type) {
+        switch (type) {
+            case 2:
+            case 3:
+                return true;
+        }
+        return false;
     }
 
     public int getBilgePercentage() {

@@ -14,10 +14,21 @@ public class PlayerLoginRequest {
      */
     private String name;
 
+    /**
+     * The ship ID selected
+     */
+    private int ship;
 
-    public PlayerLoginRequest(Player player, String name) {
+    /**
+     * The version
+     */
+    private int version;
+
+    public PlayerLoginRequest(Player player, String name, int ship, int version) {
         this.player = player;
         this.name = name;
+        this.ship = ship;
+        this.version = version;
     }
 
     public Player getPlayer() {
@@ -26,5 +37,13 @@ public class PlayerLoginRequest {
 
     public String getName() {
         return name;
+    }
+
+    public int getShip() {
+        return ship;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

@@ -22,6 +22,9 @@ public class SendTimePacket extends OutgoingPacket {
 
     public void setTurnTime(int turnTime) {
         this.turnTime = turnTime;
+        if (turnTime < 0) {
+            this.turnTime = 0;
+        }
     }
 
     @Override

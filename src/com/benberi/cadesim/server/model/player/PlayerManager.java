@@ -7,9 +7,11 @@ import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
 import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
 import com.benberi.cadesim.server.model.player.move.MoveType;
+import com.benberi.cadesim.server.model.player.vessel.Vessel;
 import com.benberi.cadesim.server.model.player.vessel.VesselMovementAnimation;
 import com.benberi.cadesim.server.util.Direction;
 import com.benberi.cadesim.server.util.Position;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import io.netty.channel.Channel;
 
 import java.util.ArrayList;
@@ -65,35 +67,17 @@ public class PlayerManager {
         // Send time ~ every second
         if (System.currentTimeMillis() - lastTimeSend >= 1000) {
             lastTimeSend = System.currentTimeMillis();
-
-            if (context.getTimeMachine().hasLock()) {
-                boolean failed = false;
-                for (Player p : listRegisteredPlayers()) {
-                    System.out.println("Here 2");
-                    if (!p.isTurnFinished()) {
-                        if (p.getTurnFinishWaitingTicks() > Constants.TURN_FINISH_TIMEOUT) {
-                            p.getChannel().disconnect();
-                        }
-                        else {
-                            p.updateTurnFinishWaitingTicks();
-                            failed = true;
-                        }
-                    }
-                }
-
-                if (!failed) {
-                    context.getTimeMachine().renewTurn();
-                    sendAfterTurn();
-                    context.getTimeMachine().setLock(false);
-                }
-            }
-
-            sendTime();
+            handleTime();
         }
 
         // Update players (for stuff like damage fixing, bilge fixing and move token generation)
-        for (Player p : listRegisteredPlayers()) {
-            p.update();
+        if (!context.getTimeMachine().isLock()) {
+            for (Player p : listRegisteredPlayers()) {
+                if (p.isSunk()) {
+                    continue;
+                }
+                p.update();
+            }
         }
 
         // Handle login requests
@@ -107,6 +91,10 @@ public class PlayerManager {
      * Handles and executes all turns
      */
     public void handleTurns() {
+
+        for (Player player : listRegisteredPlayers()) {
+            player.getPackets().sendSelectedMoves();
+        }
 
         // Loop through all turns
         for (int turn = 0; turn < 4; turn++) {
@@ -223,65 +211,6 @@ public class PlayerManager {
         context.getTimeMachine().setLock(true);
     }
 
-    private int countTurnExecutionTime() {
-        int slotsFilled = 0;
-        int slotsSubAnimations = 0;
-        int shootsFilled = 0;
-        int sunkShips = 0;
-
-        for (int i = 0; i < 4; i++) {
-            for (Player p : listRegisteredPlayers()) {
-                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
-                if (turn.getAnimation() != VesselMovementAnimation.NO_ANIMATION) {
-                    slotsFilled += 2000;
-                    break;
-                }
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            for (Player p : listRegisteredPlayers()) {
-                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
-                if (turn.getLeftShoots() > 0 || turn.getRightShoots() > 0) {
-                    shootsFilled += 1650;
-                    break;
-                }
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            for (Player p : listRegisteredPlayers()) {
-                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
-                if (turn.getSubAnimation() != VesselMovementAnimation.NO_ANIMATION) {
-                    if (turn.getSubAnimation().isWhirlpool()) {
-                        slotsSubAnimations += 1700;
-                    }
-                    else {
-                        slotsSubAnimations += 1100;
-                    }
-                    break;
-                }
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            for (Player p : listRegisteredPlayers()) {
-                MoveAnimationTurn turn = p.getAnimationStructure().getTurn(i);
-                if (turn.isSunk()) {
-                    sunkShips += 5000;
-                    break;
-                }
-            }
-        }
-
-        sunkShips -= (slotsFilled + slotsSubAnimations + shootsFilled);
-        if (sunkShips <= 0) {
-            sunkShips = 0;
-        }
-        return sunkShips + slotsFilled + slotsSubAnimations + shootsFilled;
-    }
-
-
     /**
      * Damages entities for player's shoot
      * @param shoots        How many shoots to calculate
@@ -301,6 +230,34 @@ public class PlayerManager {
                 turnAnimation.setSunk(true);
             }
         }
+    }
+
+    /**
+     * Handles the time
+     */
+    private void handleTime() {
+        if (context.getTimeMachine().hasLock()) {
+            boolean failed = false;
+            for (Player p : listRegisteredPlayers()) {
+                if (!p.isTurnFinished()) {
+                    if (p.getTurnFinishWaitingTicks() > Constants.TURN_FINISH_TIMEOUT) {
+                        p.getChannel().disconnect();
+                    }
+                    else {
+                        p.updateTurnFinishWaitingTicks();
+                        failed = true;
+                    }
+                }
+            }
+
+            if (!failed) {
+                context.getTimeMachine().renewTurn();
+                sendAfterTurn();
+                context.getTimeMachine().setLock(false);
+            }
+        }
+
+        sendTime();
     }
 
     /**
@@ -440,17 +397,25 @@ public class PlayerManager {
 
             Player pl = request.getPlayer();
             String name = request.getName();
+            int version = request.getVersion();
+            int ship = request.getShip();
 
             int response = LoginResponsePacket.SUCCESS;
 
-            if (getPlayerByName(name) != null) {
+            if (version != Constants.PROTOCOL_VERSION) {
+                response = LoginResponsePacket.BAD_VERSION;
+            }
+            else if (getPlayerByName(name) != null) {
                 response = LoginResponsePacket.NAME_IN_USE;
+            }
+            else if (!Vessel.vesselExists(ship)) {
+                response = LoginResponsePacket.BAD_SHIP;
             }
 
             pl.getPackets().sendLoginResponse(response);
 
             if (response == LoginResponsePacket.SUCCESS) {
-                pl.register(name);
+                pl.register(name, ship);
                 pl.getPackets().sendBoard();
                 pl.getPackets().sendPlayers();
                 pl.getPackets().sendDamage();

@@ -14,7 +14,10 @@ public class PlayerLoginPacket extends ServerPacketExecutor {
 
     @Override
     public void execute(Player pl, Packet p) {
+        int version = p.readByte();
+        int ship = p.readByte();
         String name = p.readByteString();
-        getContext().getPlayerManager().queuePlayerLogin(new PlayerLoginRequest(pl, name));
+
+        getContext().getPlayerManager().queuePlayerLogin(new PlayerLoginRequest(pl, name, ship, version));
     }
 }

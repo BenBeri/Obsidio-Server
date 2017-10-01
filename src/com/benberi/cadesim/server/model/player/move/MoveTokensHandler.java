@@ -53,14 +53,9 @@ public class MoveTokensHandler {
      */
     private boolean automatic = true;
 
-    /**
-     * The owner vessel
-     */
-    private Vessel vessel;
 
 
     public MoveTokensHandler(Player player) {
-        this.vessel = player.getVessel();
         this.player = player;
 
         for (int i = 0; i < 4; i++) {
@@ -175,8 +170,8 @@ public class MoveTokensHandler {
      */
     public void addCannons(int toAdd) {
         cannons += toAdd;
-        if (cannons > vessel.getMaxCannons()) {
-            cannons = vessel.getMaxCannons();
+        if (cannons > player.getVessel().getMaxCannons()) {
+            cannons = player.getVessel().getMaxCannons();
         }
     }
 

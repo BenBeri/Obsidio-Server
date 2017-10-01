@@ -112,7 +112,6 @@ public class Player extends Position {
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
         this.context = ctx;
-        this.vessel = Vessel.createVesselByType(this, Constants.DEFAULT_VESSEL_TYPE);
         this.packets = new PlayerPacketManager(this);
         this.moveGenerator = new MoveGenerator(this);
         this.tokens = new MoveTokensHandler(this);
@@ -158,8 +157,6 @@ public class Player extends Position {
 
     @Override
     public Position set(Position pos) {
-        System.out.println(this.name + " Set position: " + pos.getX() + " " + pos.getY() + " safe: " + context.getMap().isSafe(pos));
-
         if (!needsRespawn) {
             if (!outOfSafe && !context.getMap().isSafe(pos)) {
                 this.outOfSafe = true;
@@ -169,7 +166,6 @@ public class Player extends Position {
                 needsRespawn = true;
             }
         }
-
         return super.set(pos);
     }
 
@@ -278,8 +274,9 @@ public class Player extends Position {
      *
      * @param name  The name to register
      */
-    public void register(String name) {
+    public void register(String name, int ship) {
         this.name = name;
+        this.vessel = Vessel.createVesselByType(this, ship);
         this.isRegistered = true;
         respawn();
     }
@@ -288,7 +285,6 @@ public class Player extends Position {
      * Respawns the player
      */
     public void respawn() {
-        System.out.println("respawn for: " + this.name);
         int x = 0;
         int y = 0;
         while(context.getPlayerManager().getPlayerByPosition(x, y) != null) {
@@ -387,13 +383,15 @@ public class Player extends Position {
                 }
 
                 moves.setMove(slot, moveType);
-                packets.sendMovePlaceVerification(slot, move);
+                //packets.sendMovePlaceVerification(slot, move);
+                packets.sendSelectedMoves();
                 packets.sendTokens();
             }
             else {
                 if (currentMove != MoveType.NONE) {
                     tokens.returnMove(currentMove);
-                    packets.sendMovePlaceVerification(slot, MoveType.NONE.getId());
+                    //packets.sendMovePlaceVerification(slot, MoveType.NONE.getId());
+                    packets.sendSelectedMoves();
                     packets.sendTokens();
                 }
             }
@@ -435,7 +433,8 @@ public class Player extends Position {
                 }
             }
 
-            packets.sendPlaceCannonVerification(slot, 0);
+           // packets.sendPlaceCannonVerification(slot, 0);
+            packets.sendSelectedMoves();
         }
         else {
             int shoots = moves.getRightCannons(slot);
@@ -460,7 +459,8 @@ public class Player extends Position {
                 }
             }
 
-            packets.sendPlaceCannonVerification(slot, 1);
+           // packets.sendPlaceCannonVerification(slot, 1);
+            packets.sendSelectedMoves();
         }
 
         packets.sendTokens();

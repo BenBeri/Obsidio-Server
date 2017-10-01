@@ -14,6 +14,7 @@ public class AddPlayerShipPacket extends OutgoingPacket {
     private int x;
     private int y;
     private int face;
+    private int ship;
 
     public AddPlayerShipPacket() {
         super(OutGoingPackets.ADD_SHIP);
@@ -35,6 +36,10 @@ public class AddPlayerShipPacket extends OutgoingPacket {
         this.face = face.getDirectionId();
     }
 
+    public void setShip(int ship) {
+        this.ship = ship;
+    }
+
     @Override
     public void encode() {
         setPacketLengthType(PacketLength.BYTE);
@@ -42,7 +47,7 @@ public class AddPlayerShipPacket extends OutgoingPacket {
         writeByte(x); // x
         writeByte(y); // y
         writeByte(face); // face
-
+        writeByte(ship);
         setLength(getBuffer().readableBytes());
     }
 }

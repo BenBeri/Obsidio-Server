@@ -3,6 +3,11 @@ package com.benberi.cadesim.server.config;
 public class Constants {
 
     /**
+     * The protocol verison to allow connections from (client-version)
+     */
+    public static final int PROTOCOL_VERSION = 1;
+
+    /**
      * The port the cade sim will use
      */
     public static final int PROTOCOL_DEFAULT_PORT = 80;
@@ -29,7 +34,21 @@ public class Constants {
 
     public static final int DEFAULT_VESSEL_TYPE = 0;
 
+    /**
+     * Bilge increasing rate after X damage
+     */
     public static final double BILGE_INCREASE_RATE_PER_TICK = 0.1;
+
+    /**
+     * The tokens life after generating
+     */
     public static final int TOKEN_LIFE = 4; // turns
+
+    /**
+     * This is used to timeout players that did not notify the server about their animation finish for the given
+     * timeout value
+     */
     public static final int TURN_FINISH_TIMEOUT = 30;
+
+    public static final int TURN_EXTRA_TIME = 13;
 }

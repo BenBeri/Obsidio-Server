@@ -5,25 +5,25 @@ import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.vessel.CannonType;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 
-public class WarFrigate extends Vessel {
+public class WarBrig extends Vessel {
 
-    public WarFrigate(Player p) {
+    public WarBrig(Player p) {
         super(p);
     }
 
     @Override
     public int getID() {
-        return 3;
+        return 2;
     }
 
     @Override
     public int getSize() {
-        return 3;
+        return 2;
     }
 
     @Override
     public int getMaxCannons() {
-        return 24;
+        return 16;
     }
 
     @Override
@@ -38,16 +38,16 @@ public class WarFrigate extends Vessel {
 
     @Override
     public double getMaxDamage() {
-        return 33.32;
+        return 16.66;
     }
 
     @Override
     public double getRamDamage() {
-        return 2;
+        return 1.333;
     }
 
     @Override
     public CannonType getCannonType() {
-        return CannonType.LARGE;
+        return CannonType.MEDIUM;
     }
 }

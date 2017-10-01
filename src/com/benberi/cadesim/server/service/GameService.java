@@ -18,8 +18,12 @@ public class GameService implements Runnable {
 
     @Override
     public void run() {
-        context.getPackets().queuePackets();
-        context.getTimeMachine().tick();
-        context.getPlayerManager().tick();
+        try {
+            context.getPackets().queuePackets();
+            context.getTimeMachine().tick();
+            context.getPlayerManager().tick();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

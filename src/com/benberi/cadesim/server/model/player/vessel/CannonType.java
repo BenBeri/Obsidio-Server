@@ -3,7 +3,7 @@ package com.benberi.cadesim.server.model.player.vessel;
 public enum CannonType {
     SMALL(0.5),
     MEDIUM(1),
-    LARGE(1.3328);
+   LARGE(1.3328);
 
     /**
      * The damage the cannon deals

@@ -80,7 +80,12 @@ public class ServerPacketManager {
             ServerPacketExecutor executor = entry.getValue();
 
             if (packet.getOpcode() == opcode) {
-                executor.execute(p, packet);
+                try {
+                    executor.execute(p, packet);
+                }
+                catch (Exception e) {
+                    c.disconnect();
+                }
                 return true;
             }
         }

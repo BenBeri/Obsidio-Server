@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
 import com.benberi.cadesim.server.codec.packet.out.impl.*;
+import com.benberi.cadesim.server.model.player.move.MoveType;
 
 import java.util.List;
 
@@ -69,6 +70,7 @@ public class PlayerPacketManager {
     }
 
     /**
+     * @deprecated
      * Sends move place verification
      *
      * @param slot  The slot to place at
@@ -82,6 +84,7 @@ public class PlayerPacketManager {
     }
 
     /**
+     * @deprecated
      * Sends cannon place verification
      *
      * @param slot  The slot to place at
@@ -131,7 +134,7 @@ public class PlayerPacketManager {
         packet.setX(other.getX());
         packet.setY(other.getY());
         packet.setFace(other.getFace());
-
+        packet.setShip(other.getVessel().getID());
         player.sendPacket(packet);
     }
 
@@ -181,6 +184,30 @@ public class PlayerPacketManager {
     public void sendRemovePlayer(Player p) {
         RemovePlayerShipPacket packet = new RemovePlayerShipPacket();
         packet.setName(p.getName());
+
+        player.sendPacket(packet);
+    }
+
+    public void sendSelectedMoves() {
+        SendSelectedMoves packet = new SendSelectedMoves();
+        byte[] moves = new byte[4];
+        byte[] left = new byte[4];
+        byte[] right = new byte[4];
+
+        for (int i = 0; i < 4; i++) {
+            MoveType move = player.getMoves().getMove(i);
+            int l = player.getMoves().getLeftCannons(i);
+            int r = player.getMoves().getRightCannons(i);
+
+            moves[i] = (byte) move.getId();
+            left[i] = (byte) l;
+            right[i] = (byte) r;
+        }
+
+
+        packet.setMoves(moves);
+        packet.setLeft(left);
+        packet.setRight(right);
 
         player.sendPacket(packet);
     }

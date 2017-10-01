@@ -35,6 +35,7 @@ public class SendPlayersPacket extends OutgoingPacket {
             writeByte(p.getX());
             writeByte(p.getY());
             writeByte(p.getFace().getDirectionId());
+            writeByte(p.getVessel().getID());
         }
 
         setLength(getBuffer().readableBytes());

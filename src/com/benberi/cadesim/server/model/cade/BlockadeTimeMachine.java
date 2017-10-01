@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.model.cade;
 
 import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.ServerContext;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 public class BlockadeTimeMachine {
 
@@ -24,9 +25,7 @@ public class BlockadeTimeMachine {
         this.context = context;
     }
 
-    private long turnResetDelay = -1;
-
-    public boolean lock;
+    private boolean lock;
 
     /**
      * The main tick of blockade time machine
@@ -36,9 +35,10 @@ public class BlockadeTimeMachine {
             // TODO end?
         }
 
-        gameTime--; // Tick blockade time
+        if (!isLock() && gameTime > 0)
+            gameTime--; // Tick blockade time
 
-        if (turnTime == 0) {
+        if (turnTime <= -Constants.TURN_EXTRA_TIME) {
             if (!lock) {
                 try {
                     context.getPlayerManager().handleTurns();
@@ -55,10 +55,6 @@ public class BlockadeTimeMachine {
 
     public void setLock(boolean lock) {
         this.lock = lock;
-    }
-
-    public void setTurnResetDelay(long delay) {
-        this.turnResetDelay = delay;
     }
 
     /**
@@ -85,11 +81,18 @@ public class BlockadeTimeMachine {
     }
 
     /**
+     * Checks if the time is locked
+     * @return {@link #lock}
+     */
+    public boolean isLock() {
+        return lock;
+    }
+
+    /**
      * Renewals the turn time
      */
     public void renewTurn() {
         turnTime = Constants.TURN_TIME;
-        turnResetDelay = -1;
         setLock(false);
     }
 }
