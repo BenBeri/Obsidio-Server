@@ -1,22 +1,24 @@
 package com.benberi.cadesim.server.codec.packet.out.impl;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
-import com.benberi.cadesim.server.codec.util.PacketLength;
-import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.codec.util.PacketLength;
+import com.benberi.cadesim.server.model.cade.map.flag.Flag;
+import com.benberi.cadesim.server.model.player.Player;
 
 import java.util.List;
 
 /**
- * Adds a player ship to the game board (position, ship type, player name, and ID)
+ * Sets the flags above player's ship, of what he has taken
  */
-public class SendPlayersPacket extends OutgoingPacket {
+public class SetPlayerFlagsPacket extends OutgoingPacket {
 
     private List<Player> players;
 
-    public SendPlayersPacket() {
-        super(OutGoingPackets.SEND_ALL_VESSELS);
+    public SetPlayerFlagsPacket() {
+        super(OutGoingPackets.SET_PLAYER_FLAGS);
     }
+
 
     public void setPlayers(List<Player> players) {
         this.players = players;
@@ -25,20 +27,16 @@ public class SendPlayersPacket extends OutgoingPacket {
     @Override
     public void encode() {
         setPacketLengthType(PacketLength.SHORT);
-
         writeByte(players.size());
-        for(Player p : players) {
-            if (!p.isRegistered()) {
-                continue;
-            }
+        for (Player p : players) {
             writeByteString(p.getName());
-            writeByte(p.getX());
-            writeByte(p.getY());
-            writeByte(p.getFace().getDirectionId());
-            writeByte(p.getVessel().getID());
-            writeByte(p.getTeam().getID());
+            List<Flag> flags = p.getFlags();
+            writeByte(flags.size());
+            for(Flag f : flags) {
+                writeByte(f.getX());
+                writeByte(f.getY());
+            }
         }
-
         setLength(getBuffer().readableBytes());
     }
 }

@@ -28,7 +28,8 @@ public class CadeServer extends ServerBootstrap implements Runnable {
     /**
      * Server event loop worker
      */
-    private EventLoopGroup worker = new NioEventLoopGroup(1);
+    private EventLoopGroup worker = new NioEventLoopGroup(2);
+    private EventLoopGroup workerBoss = new NioEventLoopGroup();
 
     /**
      * The server context
@@ -44,9 +45,8 @@ public class CadeServer extends ServerBootstrap implements Runnable {
         super();
         this.context = context;
         this.bootstrap = bootstrap;
-        group(worker);
+        group(workerBoss, worker);
         channel(NioServerSocketChannel.class);
-        option(ChannelOption.SO_BACKLOG, 100);
         childOption(ChannelOption.TCP_NODELAY, true);
         childHandler(new ChannelInitializer<SocketChannel>() {
             @Override

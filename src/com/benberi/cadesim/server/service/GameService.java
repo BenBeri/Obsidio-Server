@@ -19,11 +19,15 @@ public class GameService implements Runnable {
     @Override
     public void run() {
         try {
+            long start = System.currentTimeMillis();
             context.getPackets().queuePackets();
             context.getTimeMachine().tick();
             context.getPlayerManager().tick();
+            context.getPlayerManager().queueOutgoing();
+            long end = System.currentTimeMillis() - start;
         } catch (Exception e) {
             e.printStackTrace();
+            ServerContext.log(e.getMessage());
         }
     }
 }

@@ -83,4 +83,11 @@ public class OutGoingPackets {
      * Sends all selected move , cannon tokens of your player
      */
     public static final int SEND_MOVES = 15;
+
+    /**
+     * Sets/Updates the flags on the blockade
+     */
+    public static final int SET_FLAGS = 16;
+
+    public static final int SET_PLAYER_FLAGS = 17;
 }

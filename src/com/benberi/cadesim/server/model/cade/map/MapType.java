@@ -1,8 +1,14 @@
 package com.benberi.cadesim.server.model.cade.map;
 
 import com.benberi.cadesim.server.CadeServer;
+import com.benberi.cadesim.server.model.cade.map.flag.Flag;
+import com.benberi.cadesim.server.model.cade.map.flag.FlagSize;
 
 import java.io.*;
+
+import static com.benberi.cadesim.server.model.cade.map.BlockadeMap.FLAG_1;
+import static com.benberi.cadesim.server.model.cade.map.BlockadeMap.FLAG_2;
+import static com.benberi.cadesim.server.model.cade.map.BlockadeMap.FLAG_3;
 
 public enum MapType {
 
@@ -14,7 +20,7 @@ public enum MapType {
         this.name = name;
     }
 
-    public int[][] load() {
+    public int[][] load(BlockadeMap bmap) {
         int[][] map = new int[BlockadeMap.MAP_WIDTH][BlockadeMap.MAP_HEIGHT];
 
        // File file = new File(CadeServer.class.getResource("resources/maps/default.txt").getPath());
@@ -52,6 +58,21 @@ public enum MapType {
             x1++;
         }
 
+        for(int i = 0; i < map.length; i++) {
+            for (int j = 0; j < finalMap[i].length; j++) {
+                if (isFlag(finalMap[i][j])) {
+                    Flag flag = new Flag(FlagSize.forTile(finalMap[i][j]));
+                    flag.set(i, j);
+                    bmap.addFlag(flag);
+                    finalMap[i][j] = 0;
+                }
+            }
+        }
+
         return finalMap;
+    }
+
+    private boolean isFlag(int tile) {
+        return tile == FLAG_1 || tile == FLAG_2 || tile == FLAG_3;
     }
 }

@@ -26,6 +26,7 @@ public class PlayerCollisionStorage {
 
     private int actionTile = -1;
 
+    private boolean recursionStarter;
 
     public boolean isActionMoveCollided() {
         return actionMoveCollided;
@@ -44,8 +45,22 @@ public class PlayerCollisionStorage {
         this.collisions[turn] = new PlayerCollisionReference(player, phase);
     }
 
+    public boolean isColided(int turn, int phase) {
+        if (this.collisions[turn] != null)
+            return this.collisions[turn].getPhase() == phase;
+        return false;
+    }
+
     public boolean isOnAction() {
         return actionTile != -1;
+    }
+
+    public boolean isRecursionStarter() {
+        return recursionStarter;
+    }
+
+    public void setRecursionStarter(boolean recursionStarter) {
+        this.recursionStarter = recursionStarter;
     }
 
     public void setOnAction(int tile) {

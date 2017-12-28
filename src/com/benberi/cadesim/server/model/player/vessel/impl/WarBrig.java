@@ -22,6 +22,11 @@ public class WarBrig extends Vessel {
     }
 
     @Override
+    public int getInfluenceDiameter() {
+        return 6;
+    }
+
+    @Override
     public int getMaxCannons() {
         return 16;
     }

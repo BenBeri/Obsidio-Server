@@ -1,5 +1,6 @@
 package com.benberi.cadesim.server.codec.util;
 
+import com.benberi.cadesim.server.ServerContext;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -19,7 +20,11 @@ public abstract class StatefulByteDecoder<T extends Enum<T>> extends ByteToMessa
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
-        decode(ctx, buffer, state, out);
+        try {
+            decode(ctx, buffer, state, out);
+        } catch (Exception e) {
+            ServerContext.log("Channel decode error: " + e.getMessage());
+        }
     }
 
 

@@ -51,12 +51,17 @@ public abstract class Vessel {
         }
     }
 
+    /**
+     * Appends bilge
+     * @param bilge The bilge to append
+     */
     public void appendBilge(double bilge) {
         this.bilge += bilge;
         if (this.bilge > 100) {
             this.bilge = 100;
         }
     }
+
     /**
      * Gets the bilge
      *
@@ -82,6 +87,33 @@ public abstract class Vessel {
 
     public void setJobbersQuality(int jobbersQuality) {
         this.jobbersQuality = jobbersQuality;
+    }
+
+    public int getBilgePercentage() {
+        return (int) (bilge / 100 * 100);
+    }
+
+    public void decreaseDamage(double rate) {
+        damage -= rate;
+        if (damage < 0) {
+            damage = 0;
+        }
+    }
+
+    public void decreaseBilge(double rate) {
+        bilge -= rate;
+        if (bilge < 0) {
+            bilge = 0;
+        }
+    }
+
+    public boolean isDamageMaxed() {
+        return damage >= getMaxDamage();
+    }
+
+    public void resetDamageAndBilge() {
+        damage = 0;
+        bilge = 0;
     }
 
     /**
@@ -123,6 +155,12 @@ public abstract class Vessel {
     public abstract int getSize();
 
     /**
+     * Gets the influence flag diameter
+     * @return  The diameter
+     */
+    public abstract int getInfluenceDiameter();
+
+    /**
      * Creates a vessel by given vessel type
      * @param type  The vessel type
      * @return The created vessel
@@ -137,6 +175,11 @@ public abstract class Vessel {
         }
     }
 
+    /**
+     * Checks if the vessel type exists
+     * @param type  The vessel type
+     * @return
+     */
     public static boolean vesselExists(int type) {
         switch (type) {
             case 2:
@@ -144,32 +187,5 @@ public abstract class Vessel {
                 return true;
         }
         return false;
-    }
-
-    public int getBilgePercentage() {
-        return (int) (bilge / 100 * 100);
-    }
-
-    public void decreaseDamage(double rate) {
-        damage -= rate;
-        if (damage < 0) {
-            damage = 0;
-        }
-    }
-
-    public void decreaseBilge(double rate) {
-        bilge -= rate;
-        if (bilge < 0) {
-            bilge = 0;
-        }
-    }
-
-    public boolean isDamageMaxed() {
-        return damage >= getMaxDamage();
-    }
-
-    public void resetDamageAndBilge() {
-        damage = 0;
-        bilge = 0;
     }
 }

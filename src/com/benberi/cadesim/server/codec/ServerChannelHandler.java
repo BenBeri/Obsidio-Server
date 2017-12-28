@@ -3,6 +3,7 @@ package com.benberi.cadesim.server.codec;
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.codec.packet.IncomingPacket;
+import com.benberi.cadesim.server.model.player.Player;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
@@ -27,6 +28,7 @@ public class ServerChannelHandler implements ChannelInboundHandler {
         try {
             context.getPlayerManager().registerPlayer(ctx.channel());
         } catch (Exception e) {
+            ServerContext.log("Channel register error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -44,17 +46,24 @@ public class ServerChannelHandler implements ChannelInboundHandler {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
+        ServerContext.log("Channel went inactive: " + ctx.channel().remoteAddress());
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
-        if (o instanceof Packet) {
-            Packet packet = (Packet) o;
-            Channel c = ctx.channel();
+        try {
+            if (o instanceof Packet) {
+                Packet packet = (Packet) o;
+                Channel c = ctx.channel();
 
-            IncomingPacket p = new IncomingPacket(c, packet);
-            context.getPackets().addToQueue(p);
+                Player player = context.getPlayerManager().getPlayerByChannel(c);
+                if (player != null) {
+                    IncomingPacket p = new IncomingPacket(c, packet);
+                    player.getPackets().queueIncoming(p);
+                }
+            }
+        } catch(Exception e) {
+            ServerContext.log("Channel read error: " + e.getMessage());
         }
     }
 
@@ -85,6 +94,6 @@ public class ServerChannelHandler implements ChannelInboundHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable throwable) throws Exception {
-
+        ServerContext.log("Channel exception caught: " + throwable.getMessage());
     }
 }

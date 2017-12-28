@@ -6,6 +6,15 @@ import com.benberi.cadesim.server.model.cade.map.BlockadeMap;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
 import com.benberi.cadesim.server.codec.packet.ServerPacketManager;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Date;
+
 /**
  * The server context containing references to every massive part of the
  * server model, domain and configuration
@@ -27,6 +36,8 @@ public class ServerContext {
      */
     private BlockadeMap map;
 
+    private static File log;
+
     /**
      * The configuration of the server
      */
@@ -40,6 +51,26 @@ public class ServerContext {
         this.timeMachine = new BlockadeTimeMachine(this);
         this.map = new BlockadeMap(this);
         this.packets = new ServerPacketManager(this);
+    }
+
+    static {
+        Date date = new Date();
+        log = new File("logs/" + date.toString().replace(" ", "_").replace(":", "") + ".txt");
+        try {
+            log.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void log(String message) {
+        Date date = new Date();
+        try {
+            message = "[" + date.toString().replace(" ", "_").replace(":", "") + "]: " + message + "\n";
+            Files.write(ServerContext.log.toPath(), message.getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

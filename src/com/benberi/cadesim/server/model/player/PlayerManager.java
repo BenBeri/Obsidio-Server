@@ -1,8 +1,11 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.codec.packet.out.impl.LoginResponsePacket;
 import com.benberi.cadesim.server.config.Constants;
+import com.benberi.cadesim.server.model.cade.Team;
+import com.benberi.cadesim.server.model.cade.map.flag.Flag;
 import com.benberi.cadesim.server.model.player.collision.CollisionCalculator;
 import com.benberi.cadesim.server.model.player.domain.PlayerLoginRequest;
 import com.benberi.cadesim.server.model.player.move.MoveAnimationTurn;
@@ -47,6 +50,16 @@ public class PlayerManager {
      * The collision calculator
      */
     private CollisionCalculator collision;
+
+    /**
+     * The points of the green team
+     */
+    private int pointsTeamGreen;
+
+    /**
+     * The points of the red team
+     */
+    private int pointsTeamRed;
 
     /**
      * The last time time packet was sent
@@ -116,8 +129,10 @@ public class PlayerManager {
                          continue;
                      }
 
+                     p.getCollisionStorage().setRecursionStarter(true);
                      // Checks collision for the player, according to his current step #phase index and turn
                      collision.checkCollision(p, turn, phase, true);
+                     p.getCollisionStorage().setRecursionStarter(false);
                  }
 
                  // There we update the bumps toggles, if a bump was toggled, we need to save it to the animation storage for this
@@ -161,34 +176,36 @@ public class PlayerManager {
             /*
             * Phase 2 handling
             */
-
             for (int phase = 0; phase < 2; phase++) {
-
                 for (Player player : listRegisteredPlayers()) {
-
                     if (player.getCollisionStorage().isBumped()) {
                         continue;
                     }
 
-                    int tile = player.getCollisionStorage().isOnAction() ? player.getCollisionStorage().getActionTile()
-                            : context.getMap().getTile(player.getX(), player.getY());
+                    int tile = context.getMap().getTile(player.getX(), player.getY());
 
-                    if (player.getCollisionStorage().isOnAction() || context.getMap().isActionTile(player.getX(), player.getY())) {
-                        if (phase == 0) {
+                    if (player.getCollisionStorage().isOnAction()) {
+                        tile = player.getCollisionStorage().getActionTile();
+                    }
+
+                    if (context.getMap().isActionTile(tile)) {
+
+                        // Save the action tile
+                        if (!player.getCollisionStorage().isOnAction()) {
                             player.getCollisionStorage().setOnAction(tile);
                         }
+
+                        // Next position for action tile
                         Position next = context.getMap().getNextActionTilePosition(tile, player, phase);
-                        System.out.println(next.getX() + " " + next.getY());
-                        if (context.getMap().isWhirlpool(tile)) {
-                            player.setFace(context.getMap().getNextActionTileFace(player.getFace()));
-                        }
-                        collision.checkActionCollision(player, next, turn, phase);
-//                        if (!collision.checkActionCollision(player, next, turn, phase)) {
-//                            player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(tile));
-//                        } else {
-//                            player.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getBumpAnimationForAction(tile));
-//                        }
+
+                        player.getCollisionStorage().setRecursionStarter(true);
+                        collision.checkActionCollision(player, next, turn, phase, true);
+                        player.getCollisionStorage().setRecursionStarter(false);
                     }
+                }
+
+                for (Player p : listRegisteredPlayers()) {
+                    p.getCollisionStorage().setPositionChanged(false);
                 }
             }
 
@@ -202,11 +219,15 @@ public class PlayerManager {
                     } else {
                         p.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(tile));
                     }
+
+                    if (context.getMap().isWhirlpool(tile))
+                        p.setFace(context.getMap().getNextActionTileFace(p.getFace()));
                 }
 
+                p.getCollisionStorage().setBumped(false);
                 p.getCollisionStorage().clear();
                 p.getCollisionStorage().setOnAction(-1);
-                p.getCollisionStorage().setBumped(false);
+
 
                 // left shoots
                 int leftShoots = p.getMoves().getLeftCannons(turn);
@@ -222,7 +243,13 @@ public class PlayerManager {
                 // Set cannon animations
                 t.setLeftShoots(leftShoots);
                 t.setRightShoots(rightShoots);
+
+                if (p.getVessel().isDamageMaxed() && !p.isSunk()) {
+                    p.setSunk(turn);
+                    p.getAnimationStructure().getTurn(turn).setSunk(true);
+                }
             }
+
         }
 
         // Process some after-turns stuff like updating damage interfaces, and such
@@ -231,6 +258,81 @@ public class PlayerManager {
         }
 
         context.getTimeMachine().setLock(true);
+    }
+
+    /**
+     * Handles a turn end
+     */
+    private void handleTurnEnd() {
+        calculateInfluenceFlags();
+        context.getTimeMachine().renewTurn();
+        sendAfterTurn();
+        context.getTimeMachine().setLock(false);
+    }
+
+    private void calculateInfluenceFlags() {
+
+        // Reset flags
+        context.getMap().resetFlags();
+
+        // Update flags for each player
+        for (Player player : listRegisteredPlayers()) {
+            if (player.isSunk()) {
+                continue;
+            }
+            List<Flag> flags = context.getMap().getInfluencingFlags(player);
+            player.setFlags(flags);
+        }
+
+
+        // Set at war flags
+        for (Flag flag : context.getMap().getFlags()) {
+            Team addPointsTeam = null;
+
+            Team team = null;
+            for (Player p : listRegisteredPlayers()) {
+                if (p.isSunk()) {
+                    continue;
+                }
+                if (p.getFlags().contains(flag)) {
+                    if (team == null) {
+                        team = p.getTeam();
+                        flag.setControlled(team);
+                        addPointsTeam = p.getTeam();
+                    }
+                    else if (team == p.getTeam()) {
+                        addPointsTeam = p.getTeam();
+                    }
+                    else if (team != p.getTeam()) {
+                        flag.setAtWar(true);
+                        addPointsTeam = null;
+                        break;
+                    }
+                }
+            }
+
+            if (addPointsTeam != null) {
+                addPointsToTeam(addPointsTeam, flag.getSize().getID());
+            }
+        }
+
+    }
+
+    /**
+     * Adds points to given team
+     *
+     * @param team      The team
+     * @param points    The points
+     */
+    private void addPointsToTeam(Team team, int points) {
+        switch (team) {
+            case GREEN:
+                pointsTeamGreen += points;
+                break;
+            case RED:
+                pointsTeamRed += points;
+                break;
+        }
     }
 
     /**
@@ -246,11 +348,6 @@ public class PlayerManager {
         Player player = collision.getVesselForCannonCollide(source, direction);
         if (player != null) {
             player.getVessel().appendDamage(((double) shoots * source.getVessel().getCannonType().getDamage()));
-            if (player.getVessel().isDamageMaxed()) {
-                player.setSunk(turnId);
-                MoveAnimationTurn turnAnimation = player.getAnimationStructure().getTurn(turnId);
-                turnAnimation.setSunk(true);
-            }
         }
     }
 
@@ -263,6 +360,7 @@ public class PlayerManager {
             for (Player p : listRegisteredPlayers()) {
                 if (!p.isTurnFinished()) {
                     if (p.getTurnFinishWaitingTicks() > Constants.TURN_FINISH_TIMEOUT) {
+                        ServerContext.log(p.getName() +  " kicked for timing out while animating!");
                         p.getChannel().disconnect();
                     }
                     else {
@@ -273,9 +371,7 @@ public class PlayerManager {
             }
 
             if (!failed) {
-                context.getTimeMachine().renewTurn();
-                sendAfterTurn();
-                context.getTimeMachine().setLock(false);
+                handleTurnEnd();
             }
         }
 
@@ -325,6 +421,14 @@ public class PlayerManager {
     }
 
     /**
+     * Gets ALL players
+     * @return  the players
+     */
+    public List<Player> getPlayers() {
+        return this.players;
+    }
+
+    /**
      * Registers a new player to the server, puts him in a hold until he sends the protocol handshake packet
      *
      * @param c The channel to register
@@ -333,6 +437,7 @@ public class PlayerManager {
         Player player = new Player(context, c);
         players.add(player);
         logger.info("A new player attempts to join the game: " + c.remoteAddress());
+        ServerContext.log("Channel registered: " + c.remoteAddress());
     }
 
 
@@ -346,6 +451,10 @@ public class PlayerManager {
         if (player != null) {
             player.setTurnFinished(true);
             queuedLogoutRequests.add(player);
+            ServerContext.log("Player de-registered: " + player.getName() + " players remaining: " + players.size());
+        }
+        else {
+            ServerContext.log("Channel DE-registered but player object was not found: " + channel.remoteAddress() + " players online: " + players.size());
         }
     }
 
@@ -421,12 +530,14 @@ public class PlayerManager {
             String name = request.getName();
             int version = request.getVersion();
             int ship = request.getShip();
+            int team = request.getTeam();
 
             int response = LoginResponsePacket.SUCCESS;
 
             if (version != Constants.PROTOCOL_VERSION) {
                 response = LoginResponsePacket.BAD_VERSION;
             }
+
             else if (getPlayerByName(name) != null) {
                 response = LoginResponsePacket.NAME_IN_USE;
             }
@@ -437,11 +548,13 @@ public class PlayerManager {
             pl.getPackets().sendLoginResponse(response);
 
             if (response == LoginResponsePacket.SUCCESS) {
-                pl.register(name, ship);
+                pl.register(name, ship, team);
                 pl.getPackets().sendBoard();
                 pl.getPackets().sendPlayers();
                 pl.getPackets().sendDamage();
                 pl.getPackets().sendTokens();
+                pl.getPackets().sendFlags();
+                pl.getPackets().sendPlayerFlags();
                 sendPlayerForAll(pl);
             }
         }
@@ -502,12 +615,28 @@ public class PlayerManager {
 
         for (Player p : listRegisteredPlayers()) {
             p.getPackets().sendPositions();
-
+            p.getPackets().sendFlags();
+            p.getPackets().sendPlayerFlags();
             if (p.isSunk()) {
                 p.giveLife();
             }
             sendMoveBar(p);
+
         }
     }
 
+    public int getPointsGreen() {
+        return pointsTeamGreen;
+    }
+
+    public int getPointsRed() {
+        return pointsTeamRed;
+    }
+
+    public void queueOutgoing() {
+        for (Player p : players) {
+            p.getPackets().queueOutgoingPackets();
+            p.getChannel().flush();
+        }
+    }
 }

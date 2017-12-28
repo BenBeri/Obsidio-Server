@@ -22,6 +22,11 @@ public class WarFrigate extends Vessel {
     }
 
     @Override
+    public int getInfluenceDiameter() {
+        return 8;
+    }
+
+    @Override
     public int getMaxCannons() {
         return 24;
     }

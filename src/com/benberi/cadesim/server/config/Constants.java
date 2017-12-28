@@ -5,7 +5,7 @@ public class Constants {
     /**
      * The protocol verison to allow connections from (client-version)
      */
-    public static final int PROTOCOL_VERSION = 1;
+    public static final int PROTOCOL_VERSION = 6;
 
     /**
      * The port the cade sim will use
@@ -51,4 +51,6 @@ public class Constants {
     public static final int TURN_FINISH_TIMEOUT = 30;
 
     public static final int TURN_EXTRA_TIME = 13;
+    public static final int OUTGOING_PACKETS_PLAYER_PER_TICK = 100;
+    public static final int INCOMING_PACKETS_PLAYER_PER_TICK = 100;
 }

@@ -242,13 +242,16 @@ public class MoveTokensHandler {
     public void returnMove(MoveType currentMove) {
         switch (currentMove) {
             case LEFT:
-                leftTokens.add(tempLeftTokens.pollFirst());
+                if (!tempLeftTokens.isEmpty())
+                    leftTokens.add(tempLeftTokens.pollFirst());
                 break;
             case RIGHT:
-                rightTokens.add(tempRightTokens.pollFirst());
+                if (!tempRightTokens.isEmpty())
+                    rightTokens.add(tempRightTokens.pollFirst());
                 break;
             case FORWARD:
-                forwardTokens.add(tempForwardTokens.pollFirst());
+                if (!tempForwardTokens.isEmpty())
+                    forwardTokens.add(tempForwardTokens.pollFirst());
                 break;
         }
     }

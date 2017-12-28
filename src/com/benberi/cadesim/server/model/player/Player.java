@@ -1,8 +1,11 @@
 package com.benberi.cadesim.server.model.player;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.codec.packet.IncomingPacket;
 import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.config.Constants;
+import com.benberi.cadesim.server.model.cade.Team;
+import com.benberi.cadesim.server.model.cade.map.flag.Flag;
 import com.benberi.cadesim.server.model.player.collision.PlayerCollisionStorage;
 import com.benberi.cadesim.server.model.player.domain.JobbersQuality;
 import com.benberi.cadesim.server.model.player.domain.MoveGenerator;
@@ -15,6 +18,9 @@ import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.util.Position;
 import io.netty.channel.Channel;
 
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 
@@ -42,6 +48,11 @@ public class Player extends Position {
      * Player's vessel
      */
     private Vessel vessel;
+
+    /**
+     * The team
+     */
+    private Team team;
 
     /**
      * The turn move handler
@@ -108,6 +119,7 @@ public class Player extends Position {
      * The waiting time for animation to finish
      */
     private int turnFinishWaitingTicks;
+    private List<Flag> flags;
 
     public Player(ServerContext ctx, Channel c) {
         this.channel = c;
@@ -175,9 +187,7 @@ public class Player extends Position {
      * @param packet The packet to send
      */
     public void sendPacket(OutgoingPacket packet) {
-        packet.encode();
-        channel.write(packet);
-        channel.flush();
+        packets.queueOutgoing(packet);
     }
 
     /**
@@ -269,13 +279,18 @@ public class Player extends Position {
         this.face = face;
     }
 
+    public Team getTeam() {
+        return this.team;
+    }
+
     /**
      * Sets the player registered
      *
      * @param name  The name to register
      */
-    public void register(String name, int ship) {
+    public void register(String name, int ship, int team) {
         this.name = name;
+        this.team = Team.forId(team);
         this.vessel = Vessel.createVesselByType(this, ship);
         this.isRegistered = true;
         respawn();
@@ -292,8 +307,6 @@ public class Player extends Position {
         }
         setFace(VesselFace.NORTH);
         set(x, y);
-
-        set(0, 6);
         setNeedsRespawn(false);
         outOfSafe = false;
         vessel.resetDamageAndBilge();
@@ -378,7 +391,10 @@ public class Player extends Position {
         MoveType moveType = MoveType.forId(move);
         if (moveType != null) {
             MoveType currentMove = moves.getMove(slot);
-
+            if (currentMove == null) {
+                currentMove = MoveType.FORWARD;
+                ServerContext.log("MOVE TYPE IS NULL, set to forward for " + name);
+            }
             if (tokens.useTokenForMove(moveType)) {
                 if (currentMove != MoveType.NONE) {
                     tokens.returnMove(currentMove);
@@ -514,9 +530,7 @@ public class Player extends Position {
         moves = new TurnMoveHandler(this);
         animation = new MoveAnimationStructure();
 
-        resetPosition();
-
-        face = VesselFace.NORTH;
+        respawn();
 
         for (Player p : context.getPlayerManager().listRegisteredPlayers()) {
             p.packets.sendRespawn(this);
@@ -545,5 +559,13 @@ public class Player extends Position {
 
     public void resetWaitingTicks() {
         this.turnFinishWaitingTicks = 0;
+    }
+
+    public List<Flag> getFlags() {
+        return flags;
+    }
+
+    public void setFlags(List<Flag> flags) {
+        this.flags = flags;
     }
 }

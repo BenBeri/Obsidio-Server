@@ -1,10 +1,15 @@
 package com.benberi.cadesim.server.model.player;
 
+import com.benberi.cadesim.server.codec.packet.IncomingPacket;
+import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
+import com.benberi.cadesim.server.config.Constants;
 import com.benberi.cadesim.server.model.cade.BlockadeTimeMachine;
 import com.benberi.cadesim.server.codec.packet.out.impl.*;
 import com.benberi.cadesim.server.model.player.move.MoveType;
 
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PlayerPacketManager {
 
@@ -12,6 +17,15 @@ public class PlayerPacketManager {
      * The player instance
      */
     private Player player;
+
+    /**
+     * The outgoing packets queue
+     */
+    private Queue<OutgoingPacket> outgoingPackets = new ConcurrentLinkedQueue<>();
+    /**
+     * The incoming packets queue
+     */
+    private Queue<IncomingPacket> incomingPackets = new ConcurrentLinkedQueue<>();
 
     public PlayerPacketManager(Player p) {
         this.player = p;
@@ -135,6 +149,7 @@ public class PlayerPacketManager {
         packet.setY(other.getY());
         packet.setFace(other.getFace());
         packet.setShip(other.getVessel().getID());
+        packet.setTeam(other.getTeam().getID());
         player.sendPacket(packet);
     }
 
@@ -210,5 +225,61 @@ public class PlayerPacketManager {
         packet.setRight(right);
 
         player.sendPacket(packet);
+    }
+
+    public void sendFlags() {
+        SetFlagsPacket packet = new SetFlagsPacket();
+        packet.setPointsGreen(player.getContext().getPlayerManager().getPointsGreen());
+        packet.setPointsRed(player.getContext().getPlayerManager().getPointsRed());
+        packet.setFlags(player.getContext().getMap().getFlags());
+
+        player.sendPacket(packet);
+    }
+
+    public void sendPlayerFlags() {
+        if (player.getFlags() == null) {
+            return;
+        }
+        SetPlayerFlagsPacket packet = new SetPlayerFlagsPacket();
+        packet.setPlayers(player.getContext().getPlayerManager().listRegisteredPlayers());
+
+        player.sendPacket(packet);
+    }
+
+    public void queueOutgoing(OutgoingPacket packet) {
+        outgoingPackets.add(packet);
+    }
+
+    public void queueIncoming(IncomingPacket packet) {
+        incomingPackets.add(packet);
+    }
+
+    /**
+     * Handles outgoing packets of player
+     */
+    public void queueOutgoingPackets() {
+        int count = 0;
+        while(!outgoingPackets.isEmpty()) {
+            outgoingPackets.poll().send(player);
+            if (count > Constants.OUTGOING_PACKETS_PLAYER_PER_TICK) {
+                break;
+            }
+            count++;
+        }
+    }
+
+    /**
+     * Handles incoming packets of the player
+     */
+    public void queueIncomingPackets() {
+        int count = 0;
+        while(!incomingPackets.isEmpty()) {
+            IncomingPacket packet = incomingPackets.poll();
+            player.getContext().getPackets().process(packet.getChannel(), packet.getPacket());
+            if (count > Constants.INCOMING_PACKETS_PLAYER_PER_TICK) {
+                break;
+            }
+            count++;
+        }
     }
 }

@@ -114,6 +114,10 @@ public class Position {
         return new Position(x, y);
     }
 
+    public boolean equals(int x, int y) {
+        return this.x == x && this.y == y;
+    }
+
     @Override
     public boolean equals(Object o) {
         if(o instanceof Position) {

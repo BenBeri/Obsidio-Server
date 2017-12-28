@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.codec.packet;
 
 import com.benberi.cadesim.server.ServerContext;
 import com.benberi.cadesim.server.codec.IncomingPackets;
+import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 import com.benberi.cadesim.server.codec.util.Packet;
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.codec.packet.in.*;
@@ -24,6 +25,7 @@ public class ServerPacketManager {
      */
     private Queue<IncomingPacket> packetQueue = new ConcurrentLinkedQueue<>();
 
+
     /**
      * The server context
      */
@@ -38,10 +40,8 @@ public class ServerPacketManager {
      * Queues all packets and executes them
      */
     public void queuePackets() {
-        while(!packetQueue.isEmpty()) {
-            IncomingPacket packet = packetQueue.poll();
-            process(packet.getChannel(), packet.getPacket());
-            packet.getPacket().getBuffer().release();
+        for (Player p : context.getPlayerManager().getPlayers()) {
+            p.getPackets().queueIncomingPackets();
         }
     }
 
@@ -67,11 +67,13 @@ public class ServerPacketManager {
     public boolean process(Channel c, Packet packet) {
         Player p = context.getPlayerManager().getPlayerByChannel(c);
         if (p == null) {
+            ServerContext.log("Player not found! packet: " + packet.getOpcode());
             return false;
         }
 
         // Drop packet if player is not registered and sending other packets than login
         if (!p.isRegistered() && packet.getOpcode() != IncomingPackets.LOGIN_PACKET) {
+            ServerContext.log("Player not registered yet! packet: " + packet.getOpcode());
             return false;
         }
 
@@ -84,6 +86,9 @@ public class ServerPacketManager {
                     executor.execute(p, packet);
                 }
                 catch (Exception e) {
+                    ServerContext.log("Player error while executing packet: " + packet.getOpcode() + " player: " + p.getName());
+                    ServerContext.log("Error message: " + e.getMessage() + " " + e.getClass().getName());
+                    e.printStackTrace();
                     c.disconnect();
                 }
                 return true;

@@ -2,6 +2,7 @@ package com.benberi.cadesim.server.codec.packet.out.impl;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
+import com.benberi.cadesim.server.model.cade.Team;
 import com.benberi.cadesim.server.model.player.vessel.VesselFace;
 import com.benberi.cadesim.server.codec.packet.out.OutgoingPacket;
 
@@ -15,6 +16,7 @@ public class AddPlayerShipPacket extends OutgoingPacket {
     private int y;
     private int face;
     private int ship;
+    private int team;
 
     public AddPlayerShipPacket() {
         super(OutGoingPackets.ADD_SHIP);
@@ -40,6 +42,10 @@ public class AddPlayerShipPacket extends OutgoingPacket {
         this.ship = ship;
     }
 
+    public void setTeam(int team) {
+        this.team = team;
+    }
+
     @Override
     public void encode() {
         setPacketLengthType(PacketLength.BYTE);
@@ -48,6 +54,7 @@ public class AddPlayerShipPacket extends OutgoingPacket {
         writeByte(y); // y
         writeByte(face); // face
         writeByte(ship);
+        writeByte(team);
         setLength(getBuffer().readableBytes());
     }
 }
