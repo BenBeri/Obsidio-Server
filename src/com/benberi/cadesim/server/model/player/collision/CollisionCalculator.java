@@ -145,7 +145,15 @@ public class CollisionCalculator {
                     }
 
                     if (move == MoveType.FORWARD && canBumpPlayer(p, claimed, turn, phase)) {
-                        bumpPlayer(claimed, p, turn, phase);
+
+                        if (canBumpPlayer(p, claimed, turn, phase)) {
+                            bumpPlayer(claimed, p, turn, phase);
+                        }
+                        else {
+                            p.getCollisionStorage().setCollided(turn, phase);
+                            return true;
+                        }
+
 
                         if (p.getVessel().getSize() > claimed.getVessel().getSize()) {
                             p.set(position);
@@ -489,9 +497,10 @@ public class CollisionCalculator {
         VesselMovementAnimation anim = VesselMovementAnimation.getBumpAnimation(bumper, bumped);
         Position bumpPosition = anim.getPositionForAnimation(bumped);
         return bumper.getVessel().getSize() >= bumped.getVessel().getSize() && !bumped.isSunk() &&
-                !isOutOfBounds(bumpPosition) && getPlayersTryingToClaim(bumped, bumpPosition, turn, phase).size() == 0;
+                !isOutOfBounds(bumpPosition) && getPlayersTryingToClaim(bumped, bumpPosition, turn, phase).size() == 0 &&
+                !context.getMap().isRock(bumpPosition.getX(), bumpPosition.getY());
     }
-
+ 
     /**
      * Collides a player, and damages him
      * @param player    The player that collided
