@@ -48,7 +48,7 @@ public class Xebec extends Vessel {
 
     @Override
     public double getRamDamage() {
-        return 1.333;
+        return 1.667;
     }
 
     @Override
