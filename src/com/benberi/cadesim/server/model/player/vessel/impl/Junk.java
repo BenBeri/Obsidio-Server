@@ -5,9 +5,9 @@ import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.vessel.CannonType;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 
-public class WarBrig extends Vessel {
+public class Junk extends Vessel {
 
-    public WarBrig(Player p) {
+    public Junk(Player p) {
         super(p);
     }
 
