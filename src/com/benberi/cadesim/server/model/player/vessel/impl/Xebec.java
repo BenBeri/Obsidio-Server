@@ -18,7 +18,7 @@ public class Xebec extends Vessel {
 
     @Override
     public int getSize() {
-        return 2;
+        return 3;
     }
 
     @Override
