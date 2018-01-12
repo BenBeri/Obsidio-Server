@@ -5,35 +5,35 @@ import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.vessel.CannonType;
 import com.benberi.cadesim.server.model.player.vessel.Vessel;
 
-public class Xebec extends Vessel {
+public class Junk extends Vessel {
 
-    public Xebec(Player p) {
+    public Junk(Player p) {
         super(p);
     }
 
     @Override
     public int getID() {
-        return 4;
+        return 5;
     }
 
     @Override
     public int getSize() {
-        return 3;
+        return 2;
     }
 
     @Override
     public int getInfluenceDiameter() {
-        return 6;
+        return 4;
     }
 
     @Override
     public int getMaxCannons() {
-        return 24;
+        return 12;
     }
 
     @Override
     public boolean isDualCannon() {
-        return true;
+        return false;
     }
 
     @Override
@@ -43,12 +43,12 @@ public class Xebec extends Vessel {
 
     @Override
     public double getMaxDamage() {
-        return 23.33;
+        return 16.66;
     }
 
     @Override
     public double getRamDamage() {
-        return 1.667;
+        return 1;
     }
 
     @Override

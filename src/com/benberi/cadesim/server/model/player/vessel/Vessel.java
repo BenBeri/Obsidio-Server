@@ -5,6 +5,7 @@ import com.benberi.cadesim.server.model.player.move.TurnMoveHandler;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarBrig;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 import com.benberi.cadesim.server.model.player.vessel.impl.Xebec;
+import com.benberi.cadesim.server.model.player.vessel.impl.Junk;
 
 /**
  * Abstraction of vessel
@@ -175,6 +176,8 @@ public abstract class Vessel {
                 return new WarFrigate(p);
             case 4:
             	return new Xebec(p);
+            case 5:
+            	return new Junk(p);
         }
     }
 
@@ -188,6 +191,7 @@ public abstract class Vessel {
             case 2:
             case 3:
             case 4:
+            case 5:
                 return true;
         }
         return false;
