@@ -161,7 +161,7 @@ public class CollisionCalculator {
                         }
                     }
                     else if(claimed.isSunk()) {
-                    	collideSunk(p, turn, phase);
+                    	collide(p, claimed, turn, phase);
                     	return true;
                     }
 
@@ -515,16 +515,6 @@ public class CollisionCalculator {
     private void collide(Player player, Player other, int turn, int phase) {
         player.getCollisionStorage().setCollided(turn, phase);
         player.getVessel().appendDamage(other.getVessel().getRamDamage());
-    }
-    
-    /**
-     * Collides a player that's sunk, and does no damage
-     * @param player    The player that collided
-     * @param turn      The turn it happened at
-     * @param phase     The phase-step it happened at
-     */
-    private void collideSunk(Player player, int turn, int phase) {
-        player.getCollisionStorage().setCollided(turn, phase);
     }
 
 
