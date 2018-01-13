@@ -160,6 +160,10 @@ public class CollisionCalculator {
                             p.getCollisionStorage().setPositionChanged(true);
                         }
                     }
+                    else if(claimed.isSunk()) {
+                    	collideSunk(p, turn, phase);
+                    	return true;
+                    }
 
                     claimed.getVessel().appendDamage(p.getVessel().getRamDamage());
 
@@ -480,7 +484,7 @@ public class CollisionCalculator {
     private void bumpPlayer(Player bumped, Player bumper, int turn, int phase) {
         VesselMovementAnimation anim = VesselMovementAnimation.getBumpAnimation(bumper, bumped);
         bumped.getCollisionStorage().setBumpAnimation(anim);
-        System.out.println("trying tu bump: " + bumped.getName());
+        System.out.println(bumper.getName() + " bumped: " + bumped.getName());
         if (checkCollision(bumped, turn, phase, false)) {
             System.out.println("Check bump for " + bumped.getName());
             bumped.getCollisionStorage().setBumpAnimation(VesselMovementAnimation.NO_ANIMATION);
@@ -512,6 +516,17 @@ public class CollisionCalculator {
         player.getCollisionStorage().setCollided(turn, phase);
         player.getVessel().appendDamage(other.getVessel().getRamDamage());
     }
+    
+    /**
+     * Collides a player that's sunk, and does no damage
+     * @param player    The player that collided
+     * @param turn      The turn it happened at
+     * @param phase     The phase-step it happened at
+     */
+    private void collideSunk(Player player, int turn, int phase) {
+        player.getCollisionStorage().setCollided(turn, phase);
+    }
+
 
     /**
      * Checks out of bounds collision
