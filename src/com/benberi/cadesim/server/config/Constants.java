@@ -5,7 +5,7 @@ public class Constants {
     /**
      * The protocol verison to allow connections from (client-version)
      */
-    public static final int PROTOCOL_VERSION = 6;
+    public static final int PROTOCOL_VERSION = 7;
 
     /**
      * The port the cade sim will use

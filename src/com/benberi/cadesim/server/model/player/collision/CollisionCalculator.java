@@ -161,6 +161,10 @@ public class CollisionCalculator {
                         }
                     }
 
+                    else if(claimed.isSunk()) {
+                    	collide(p, claimed, turn, phase);
+                    	return true;
+                    }
                     claimed.getVessel().appendDamage(p.getVessel().getRamDamage());
 
                     return true;
@@ -480,7 +484,7 @@ public class CollisionCalculator {
     private void bumpPlayer(Player bumped, Player bumper, int turn, int phase) {
         VesselMovementAnimation anim = VesselMovementAnimation.getBumpAnimation(bumper, bumped);
         bumped.getCollisionStorage().setBumpAnimation(anim);
-        System.out.println("trying tu bump: " + bumped.getName());
+        System.out.println(bumper.getName() + " bumped: " + bumped.getName());
         if (checkCollision(bumped, turn, phase, false)) {
             System.out.println("Check bump for " + bumped.getName());
             bumped.getCollisionStorage().setBumpAnimation(VesselMovementAnimation.NO_ANIMATION);
@@ -500,6 +504,21 @@ public class CollisionCalculator {
                 !isOutOfBounds(bumpPosition) && getPlayersTryingToClaim(bumped, bumpPosition, turn, phase).size() == 0 &&
                 !context.getMap().isRock(bumpPosition.getX(), bumpPosition.getY());
     }
+    
+    /**
+     * Checks whether a bump would push the other person out of bounds, but is still a legal bump
+     * @param bumper    The bumping player
+     * @param bumped    The bumped player
+     * @return  If the bump can happen
+     */
+    private boolean outOfBump(Player bumper, Player bumped, int turn, int phase) {
+        VesselMovementAnimation anim = VesselMovementAnimation.getBumpAnimation(bumper, bumped);
+        Position bumpPosition = anim.getPositionForAnimation(bumped);
+        return (bumper.getVessel().getSize() >= bumped.getVessel().getSize() && !bumped.isSunk()
+        		&& getPlayersTryingToClaim(bumped, bumpPosition, turn, phase).size() == 0)
+        		&& (context.getMap().isRock(bumpPosition.getX(), bumpPosition.getY())
+                || isOutOfBounds(bumpPosition));
+    }
  
     /**
      * Collides a player, and damages him
@@ -512,6 +531,7 @@ public class CollisionCalculator {
         player.getCollisionStorage().setCollided(turn, phase);
         player.getVessel().appendDamage(other.getVessel().getRamDamage());
     }
+
 
     /**
      * Checks out of bounds collision
