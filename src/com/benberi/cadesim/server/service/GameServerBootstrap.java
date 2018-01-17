@@ -10,6 +10,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.Options;
+
 /**
  * Obsidio game server bootstrap
  *
@@ -75,11 +77,21 @@ public class GameServerBootstrap {
     /**
      * Main method
      * @param args The arguments  for the simulator server
+     * @throws InterruptedException 
+     * @throws NumberFormatException 
      */
-    public static void main(String... args) throws InterruptedException {
-        ServerConfiguration config = new ServerConfiguration();
-        config.setPlayerLimit(2);
-        config.setMapType(0);
+    public static void main(String[] args) throws NumberFormatException, InterruptedException{
+    	
+    	new Cli(args).parse();
+    	
+    }
+    
+    public static void initiateServerStart(int amount, int mapType, int port) throws InterruptedException {
+    	
+    	ServerConfiguration config = new ServerConfiguration();
+        config.setPlayerLimit(amount);
+        config.setMapType(mapType);
+        config.setPort(port);
 
         GameServerBootstrap bootstrap = new GameServerBootstrap(config);
         bootstrap.startServer();

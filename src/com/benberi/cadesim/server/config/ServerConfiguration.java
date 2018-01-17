@@ -43,6 +43,6 @@ public class ServerConfiguration {
 
     @Override
     public String toString() {
-        return "[player-limit: " + playerLimit + ", Map Type: " + mapType + " Port: " + port + "]";
+        return "[Player limit: " + playerLimit + ", Map Type: " + mapType + " Port: " + port + "]";
     }
 }
