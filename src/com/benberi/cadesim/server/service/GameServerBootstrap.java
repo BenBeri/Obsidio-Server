@@ -10,8 +10,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import org.apache.commons.cli.Options;
-
 /**
  * Obsidio game server bootstrap
  *
@@ -86,12 +84,13 @@ public class GameServerBootstrap {
     	
     }
     
-    public static void initiateServerStart(int amount, int mapType, int port) throws InterruptedException {
+    public static void initiateServerStart(int amount, String mapName, int port) throws InterruptedException {
     	
     	ServerConfiguration config = new ServerConfiguration();
         config.setPlayerLimit(amount);
-        config.setMapType(mapType);
+        config.setMapType(0);
         config.setPort(port);
+        config.setMapName(mapName);
 
         GameServerBootstrap bootstrap = new GameServerBootstrap(config);
         bootstrap.startServer();

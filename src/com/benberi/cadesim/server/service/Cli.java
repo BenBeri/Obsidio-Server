@@ -22,7 +22,7 @@ public class Cli {
 		options.addOption("h", "help", false, "Show overview of functions available");
 		options.addOption("a", "amount", true, "Set amount of allowed players");
 		options.addOption("p", "port", true, "Set port for server");
-		options.addOption("m", "map", true, "Set type of map");
+		options.addOption("m", "map", true, "Set name of map");
 		
 	}
 
@@ -47,12 +47,12 @@ public class Cli {
 			}
 			
 			if (!cmd.hasOption("m")) {
-				log.log(Level.SEVERE, "Missing map type option");
+				log.log(Level.SEVERE, "Missing map name option");
 				help();
 			}
 			
 			if(cmd.hasOption("p") && cmd.hasOption("a")) {
-				GameServerBootstrap.initiateServerStart(Integer.parseInt(cmd.getOptionValue("a")), Integer.parseInt(cmd.getOptionValue("m")), Integer.parseInt(cmd.getOptionValue("p")));
+				GameServerBootstrap.initiateServerStart(Integer.parseInt(cmd.getOptionValue("a")), cmd.getOptionValue("m"), Integer.parseInt(cmd.getOptionValue("p")));
 			}
 
 		} catch (ParseException e) {

@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.model.cade.map;
 
 import com.benberi.cadesim.server.CadeServer;
+import com.benberi.cadesim.server.config.ServerConfiguration;
 import com.benberi.cadesim.server.model.cade.map.flag.Flag;
 import com.benberi.cadesim.server.model.cade.map.flag.FlagSize;
 
@@ -24,7 +25,7 @@ public enum MapType {
         int[][] map = new int[BlockadeMap.MAP_WIDTH][BlockadeMap.MAP_HEIGHT];
 
        // File file = new File(CadeServer.class.getResource("resources/maps/default.txt").getPath());
-        File file = new File("maps/default.txt");
+        File file = new File("maps/" + ServerConfiguration.getMapName() + ".txt");
 
         int x = 0;
         int y = 0;
