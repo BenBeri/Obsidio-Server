@@ -160,11 +160,14 @@ public class CollisionCalculator {
                             p.getCollisionStorage().setPositionChanged(true);
                         }
                     }
-
                     else if(claimed.isSunk()) {
                     	collide(p, claimed, turn, phase);
                     	return true;
                     }
+                    else if(move == MoveType.FORWARD && outOfBump(p, claimed, turn, phase)) {
+                        collide(p, claimed, turn, phase);
+                    }
+
                     claimed.getVessel().appendDamage(p.getVessel().getRamDamage());
 
                     return true;
