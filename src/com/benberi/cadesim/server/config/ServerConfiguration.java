@@ -16,6 +16,8 @@ public class ServerConfiguration {
      * Server port
      */
     private int port = 4666;
+    
+    private static String mapName = "default.txt";
 
     public int getPlayerLimit() {
         return playerLimit;
@@ -43,6 +45,14 @@ public class ServerConfiguration {
 
     @Override
     public String toString() {
-        return "[player-limit: " + playerLimit + ", Map Type: " + mapType + " Port: " + port + "]";
+        return "[Player limit: " + playerLimit + ", Map Name: " + mapName + " Port: " + port + "]";
     }
+    
+    public static String getMapName() {
+    	return mapName;
+    }
+
+	public void setMapName(String mapName) {
+		this.mapName = mapName;
+	}
 }
