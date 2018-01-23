@@ -346,7 +346,7 @@ public class PlayerManager {
             return;
         }
         Player player = collision.getVesselForCannonCollide(source, direction);
-        if (player != null) {
+        if (player != null && !source.isSunk()) {
             player.getVessel().appendDamage(((double) shoots * source.getVessel().getCannonType().getDamage()));
         }
     }
