@@ -1,10 +1,14 @@
 package com.benberi.cadesim.server.codec.packet.out.impl;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 import com.benberi.cadesim.server.codec.OutGoingPackets;
 import com.benberi.cadesim.server.codec.util.PacketLength;
@@ -22,12 +26,17 @@ public class SendTeamNamesPacket extends OutgoingPacket {
         super(OutGoingPackets.SET_TEAM_NAMES);
     }
 
-    public void getTeamNames() throws ClassNotFoundException, SQLException {
+    public void getTeamNames() throws Exception {
+    	Properties prop = new Properties();
+        String fileName = "server.config";
+        InputStream is = new FileInputStream(fileName);
         
+        prop.load(is);
+         
         String myDriver = "org.gjt.mm.mysql.Driver";
         String myUrl = "jdbc:mysql://localhost:3306/cadesim?useSSL=false";
         Class.forName(myDriver);
-        Connection conn = DriverManager.getConnection(myUrl, "cadesim-server", "Ld2qYpYEfdb2WCzA");
+        Connection conn = DriverManager.getConnection(myUrl, prop.getProperty("server.username"), prop.getProperty("server.password"));
                 
         String query = "SELECT * FROM matches ORDER BY match_id DESC LIMIT 1";
 
@@ -51,7 +60,7 @@ public class SendTeamNamesPacket extends OutgoingPacket {
     public void encode() {
     	try {
 			getTeamNames();
-		} catch (ClassNotFoundException | SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
     	
