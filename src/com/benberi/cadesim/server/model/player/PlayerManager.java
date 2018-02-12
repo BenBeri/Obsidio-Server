@@ -553,6 +553,7 @@ public class PlayerManager {
             if (response == LoginResponsePacket.SUCCESS) {
                 pl.register(name, ship, team);
                 pl.getPackets().sendBoard();
+                pl.getPackets().sendTeams();
                 pl.getPackets().sendPlayers();
                 pl.getPackets().sendDamage();
                 pl.getPackets().sendTokens();
