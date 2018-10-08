@@ -346,8 +346,11 @@ public class PlayerManager {
             return;
         }
         Player player = collision.getVesselForCannonCollide(source, direction);
-        if (player != null && source.isOutOfSafe() && !source.isSunk()) {
+        if (player != null && source.isOutOfSafe() && !source.isSunk() && player.getTeam() != source.getTeam()) {
             player.getVessel().appendDamage(((double) shoots * source.getVessel().getCannonType().getDamage()));
+        }
+        else if (player != null && source.isOutOfSafe() && !source.isSunk() && player.getTeam() == source.getTeam()) {
+        	player.getVessel().appendDamage(0.5 * ((double) shoots * source.getVessel().getCannonType().getDamage()));
         }
     }
 
@@ -550,12 +553,22 @@ public class PlayerManager {
             if (response == LoginResponsePacket.SUCCESS) {
                 pl.register(name, ship, team);
                 pl.getPackets().sendBoard();
+                pl.getPackets().sendTeams();
                 pl.getPackets().sendPlayers();
                 pl.getPackets().sendDamage();
                 pl.getPackets().sendTokens();
                 pl.getPackets().sendFlags();
                 pl.getPackets().sendPlayerFlags();
                 sendPlayerForAll(pl);
+                // If a new player joins and there are now 2 players in the server, end this round so a new one will start
+                if (players.size() == 2) {
+                    for (Player p : players) {
+                        // Respawn all players
+                        p.setNeedsRespawn(true);
+                    }
+                    context.getTimeMachine().endGame();
+                    context.getTimeMachine().endTurn();
+                }
             }
         }
     }
@@ -638,5 +651,11 @@ public class PlayerManager {
             p.getPackets().queueOutgoingPackets();
             p.getChannel().flush();
         }
+    }
+
+    public void renewGame()
+    {
+        pointsTeamRed = 0;
+        pointsTeamGreen = 0;
     }
 }

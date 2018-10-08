@@ -39,6 +39,14 @@ public class PlayerPacketManager {
         packet.setMap(player.getContext().getMap());
         player.sendPacket(packet);
     }
+    
+    /**
+     * Sends the team names to the client
+     */
+    public void sendTeams() {
+        SendTeamNamesPacket packet = new SendTeamNamesPacket();
+        player.sendPacket(packet);
+    }
 
     /**
      * Sends animation structure
