@@ -80,6 +80,7 @@ public class TurnMoveHandler {
             leftCannons[i] = 0;
             rightCannons[i] = 0;
         }
+        this.manuaverSlot = 3;
     }
 
     /**
