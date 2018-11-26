@@ -72,6 +72,8 @@ public class BlockadeTimeMachine {
         return gameTime / 10;
     }
 
+    public void endGame() { gameTime = 0;}
+
     /**
      * Gets the current turn time
      * @return {@link #turnTime}
@@ -79,6 +81,8 @@ public class BlockadeTimeMachine {
     public int getTurnTime() {
         return turnTime / 10;
     }
+
+    public void endTurn() { turnTime = 0; }
 
     /**
      * Checks if the time is locked
@@ -94,5 +98,9 @@ public class BlockadeTimeMachine {
     public void renewTurn() {
         turnTime = Constants.TURN_TIME;
         setLock(false);
+    }
+
+    public void renewGame() {
+        gameTime = Constants.BLOCKADE_TIME;
     }
 }
