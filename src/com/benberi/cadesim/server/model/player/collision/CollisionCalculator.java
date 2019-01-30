@@ -119,8 +119,9 @@ public class CollisionCalculator {
         }
         // If the player has moved since his last position
         if (!position.equals(p)) {
-            // Check for bounds collision with the border
+            // Check for bounds collision with the border and increases damage if true
             if (checkBoundCollision(p, turn, phase) || checkRockCollision(p, turn, phase)) {
+            	p.getVessel().appendDamage(p.getVessel().getRockDamage());
                 return true;
             }
             // Check if the next position is claimed by another player, null result if not
