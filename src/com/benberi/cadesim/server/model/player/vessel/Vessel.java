@@ -139,7 +139,15 @@ public abstract class Vessel {
      */
     public abstract double getMaxDamage();
 
+    /**
+     * @return The damage dealt when ramming a ship.
+     */
     public abstract double getRamDamage();
+    
+    /**
+     * @return The damage received when ramming a rock.
+     */
+    public abstract double getRockDamage();
 
     /**
      * @return The cannon type

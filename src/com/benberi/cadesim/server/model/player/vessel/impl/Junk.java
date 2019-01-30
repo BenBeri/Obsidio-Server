@@ -50,6 +50,11 @@ public class Junk extends Vessel {
     public double getRamDamage() {
         return 1;
     }
+    
+    @Override
+    public double getRockDamage() {
+    	return 0.833;
+    }
 
     @Override
     public CannonType getCannonType() {

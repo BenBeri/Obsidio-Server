@@ -50,6 +50,11 @@ public class WarFrigate extends Vessel {
     public double getRamDamage() {
         return 2;
     }
+    
+    @Override
+    public double getRockDamage() {
+    	return 1.667;
+    }
 
     @Override
     public CannonType getCannonType() {

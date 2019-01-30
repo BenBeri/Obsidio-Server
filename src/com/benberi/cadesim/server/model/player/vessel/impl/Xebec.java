@@ -50,7 +50,11 @@ public class Xebec extends Vessel {
     public double getRamDamage() {
         return 1.667;
     }
-
+    
+    @Override
+    public double getRockDamage() {
+    	return 1.167;
+    }
     @Override
     public CannonType getCannonType() {
         return CannonType.LARGE;

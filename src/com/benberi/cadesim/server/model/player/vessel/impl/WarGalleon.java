@@ -50,6 +50,11 @@ public class WarGalleon extends Vessel {
     public double getRamDamage() {
         return 1.667;
     }
+    
+    @Override
+    public double getRockDamage() {
+    	return 1.667; // Temporary, needs to be confirmed
+    }
 
     @Override
     public CannonType getCannonType() {
