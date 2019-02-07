@@ -57,6 +57,6 @@ public class Xebec extends Vessel {
     }
     @Override
     public CannonType getCannonType() {
-        return CannonType.LARGE;
+        return CannonType.MEDIUM;
     }
 }
