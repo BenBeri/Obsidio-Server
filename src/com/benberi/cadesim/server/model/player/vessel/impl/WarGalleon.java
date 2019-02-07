@@ -53,7 +53,7 @@ public class WarGalleon extends Vessel {
     
     @Override
     public double getRockDamage() {
-    	return 1.667; // Temporary, needs to be confirmed
+    	return 0.833;
     }
 
     @Override
