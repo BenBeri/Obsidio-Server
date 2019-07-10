@@ -7,6 +7,7 @@ import com.benberi.cadesim.server.model.player.vessel.impl.WarFrigate;
 import com.benberi.cadesim.server.model.player.vessel.impl.Xebec;
 import com.benberi.cadesim.server.model.player.vessel.impl.Junk;
 import com.benberi.cadesim.server.model.player.vessel.impl.WarGalleon;
+import com.benberi.cadesim.server.model.cade.Team;
 
 /**
  * Abstraction of vessel
@@ -42,11 +43,15 @@ public abstract class Vessel {
     /**
      * Appends damage
      *
-     * @param damage    The damage amount to append
+     * @param damage    	The damage amount to append
+     * @param damagingTeam	The team that dealt damage to the vessel
      */
-    public void appendDamage(double damage) {
+    public void appendDamage(double damage, Team damagingTeam) {
         if (player.isInSafe()) {
             return;
+        }
+        if (player.getTeam() == damagingTeam) {
+        	damage = 0.5 * damage;
         }
         this.damage += damage;
         if (this.damage > getMaxDamage()) {
@@ -139,7 +144,15 @@ public abstract class Vessel {
      */
     public abstract double getMaxDamage();
 
+    /**
+     * @return The damage dealt when ramming a ship.
+     */
     public abstract double getRamDamage();
+    
+    /**
+     * @return The damage received when ramming a rock.
+     */
+    public abstract double getRockDamage();
 
     /**
      * @return The cannon type

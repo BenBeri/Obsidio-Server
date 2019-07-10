@@ -10,10 +10,17 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.benberi.cadesim.server.util.RandomUtils;
+
+import java.io.File;
+import java.net.URL;
+import java.nio.file.*;
+
 public class Cli {
 	private static final Logger log = Logger.getLogger(Cli.class.getName());
 	private String[] args = null;
 	private Options options = new Options();
+	private String chosenMap;
 
 	public Cli(String[] args) {
 
@@ -46,13 +53,22 @@ public class Cli {
 				help();
 			}
 			
-			if (!cmd.hasOption("m")) {
-				log.log(Level.SEVERE, "Missing map name option");
-				help();
+			if (!cmd.hasOption("m")) { // Chooses random map if no map chosen
+				Path currentRelativePath = Paths.get("");
+				Path mapFolderPath = currentRelativePath.resolveSibling("maps");
+				File mapFolder = mapFolderPath.toFile();
+				File[] mapList = mapFolder.listFiles();
+				File randomMap = mapList[RandomUtils.randInt(0, mapList.length-1)];
+				chosenMap = randomMap.getName();
+				chosenMap = chosenMap.substring(0, chosenMap.lastIndexOf("."));
+				System.out.println(chosenMap);
+			}
+			else {
+				chosenMap = cmd.getOptionValue("m");
 			}
 			
 			if(cmd.hasOption("p") && cmd.hasOption("a")) {
-				GameServerBootstrap.initiateServerStart(Integer.parseInt(cmd.getOptionValue("a")), cmd.getOptionValue("m"), Integer.parseInt(cmd.getOptionValue("p")));
+				GameServerBootstrap.initiateServerStart(Integer.parseInt(cmd.getOptionValue("a")), chosenMap, Integer.parseInt(cmd.getOptionValue("p")));
 			}
 
 		} catch (ParseException e) {

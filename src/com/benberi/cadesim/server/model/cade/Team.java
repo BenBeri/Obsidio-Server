@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.model.cade;
 
 public enum Team {
+	NEUTRAL(2),
     GREEN(1),
     RED(0);
 
@@ -16,6 +17,8 @@ public enum Team {
 
     public static Team forId(int team) {
         switch (team) {
+        	case 2:
+        		return NEUTRAL;
             case 1:
             default:
                 return GREEN;

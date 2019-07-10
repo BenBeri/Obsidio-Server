@@ -1,6 +1,7 @@
 package com.benberi.cadesim.server.model.player.collision;
 
 import com.benberi.cadesim.server.ServerContext;
+import com.benberi.cadesim.server.model.cade.Team;
 import com.benberi.cadesim.server.model.player.Player;
 import com.benberi.cadesim.server.model.player.PlayerManager;
 import com.benberi.cadesim.server.model.player.move.MoveType;
@@ -119,8 +120,9 @@ public class CollisionCalculator {
         }
         // If the player has moved since his last position
         if (!position.equals(p)) {
-            // Check for bounds collision with the border
+            // Check for bounds collision with the border and increases damage if true
             if (checkBoundCollision(p, turn, phase) || checkRockCollision(p, turn, phase)) {
+            	p.getVessel().appendDamage(p.getVessel().getRockDamage(), Team.NEUTRAL);
                 return true;
             }
             // Check if the next position is claimed by another player, null result if not
@@ -168,7 +170,7 @@ public class CollisionCalculator {
                         collide(p, claimed, turn, phase);
                     }
 
-                    claimed.getVessel().appendDamage(p.getVessel().getRamDamage());
+                    claimed.getVessel().appendDamage(p.getVessel().getRamDamage(), p.getTeam());
 
                     return true;
                 }
@@ -244,7 +246,7 @@ public class CollisionCalculator {
         }
         if (player.getCollisionStorage().isCollided(turn) || context.getMap().isRock(target.getX(), target.getY()) || isOutOfBounds(target)) {
             System.out.println(player.getCollisionStorage().isCollided(turn) + " " + context.getMap().isRock(target.getX(), target.getY()) + " " + isOutOfBounds(target));
-            player.getVessel().appendDamage(player.getVessel().getRamDamage());
+            player.getVessel().appendDamage(player.getVessel().getRockDamage(), Team.NEUTRAL);
             player.getCollisionStorage().setCollided(turn, phase);
             return true;
         }
@@ -255,19 +257,19 @@ public class CollisionCalculator {
                 next = context.getMap().getNextActionTilePosition(claimed.getCollisionStorage().isOnAction() ? claimed.getCollisionStorage().getActionTile() : -1, claimed, phase);
             }
             if (next.equals(player)) {
-                player.getVessel().appendDamage(claimed.getVessel().getRamDamage());
-                claimed.getVessel().appendDamage(player.getVessel().getRamDamage());
+                player.getVessel().appendDamage(claimed.getVessel().getRamDamage(), claimed.getTeam());
+                claimed.getVessel().appendDamage(player.getVessel().getRamDamage(), player.getTeam());
                 player.getCollisionStorage().setCollided(turn, phase);
                 claimed.getCollisionStorage().setCollided(turn, phase);
                 return true;
             }
             else if (next.equals(claimed)) {
-                player.getVessel().appendDamage(claimed.getVessel().getRamDamage());
+                player.getVessel().appendDamage(claimed.getVessel().getRamDamage(), claimed.getTeam());
                 Position bumpPos = context.getMap().getNextActionTilePositionForTile(claimed, context.getMap().getTile(player.getX(), player.getY()));
                 if (players.getPlayerByPosition(bumpPos.getX(), bumpPos.getY()) == null && !isOutOfBounds(bumpPos)
                         && !context.getMap().isRock(bumpPos.getX(), bumpPos.getY()) && player.getVessel().getSize() >= claimed.getVessel().getSize()) {
                     claimed.set(bumpPos);
-                    claimed.getVessel().appendDamage(player.getVessel().getRamDamage());
+                    claimed.getVessel().appendDamage(player.getVessel().getRamDamage(), player.getTeam());
                     claimed.getCollisionStorage().setPositionChanged(true);
                     claimed.getCollisionStorage().setBumped(true);
                     claimed.getAnimationStructure().getTurn(turn).setSubAnimation(VesselMovementAnimation.getSubAnimation(context.getMap().getTile(player.getX(), player.getY())));
@@ -287,9 +289,9 @@ public class CollisionCalculator {
             if (collided.size() > 0) {
                 //player.getCollisionStorage().setActionMoveCollided(true);
                 player.getCollisionStorage().setCollided(turn, phase);
-                player.getVessel().appendDamage(player.getVessel().getRamDamage());
+                player.getVessel().appendDamage(player.getVessel().getRamDamage(), player.getTeam());
                 for (Player p : collided) {
-                    p.getVessel().appendDamage(p.getVessel().getRamDamage());
+                    p.getVessel().appendDamage(p.getVessel().getRamDamage(), player.getTeam());
                    // p.getCollisionStorage().setActionMoveCollided(true);
                     p.getCollisionStorage().setCollided(turn, phase);
                 }
@@ -532,7 +534,7 @@ public class CollisionCalculator {
      */
     private void collide(Player player, Player other, int turn, int phase) {
         player.getCollisionStorage().setCollided(turn, phase);
-        player.getVessel().appendDamage(other.getVessel().getRamDamage());
+        player.getVessel().appendDamage(other.getVessel().getRamDamage(), other.getTeam());
     }
 
 
